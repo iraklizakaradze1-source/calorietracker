@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calorie Counter</title>
+<style>
+:root{--bg:#fafaf8;--ink:#1a1a1a;--mute:#8a8a85;--line:#ebebe7;--soft:#f2f2ee;--over:#c0392b;--user:#2f2f2f}
+@media (prefers-color-scheme:dark){:root{--bg:#161616;--ink:#ededea;--mute:#8f8f89;--line:#2a2a28;--soft:#212120;--over:#e8806f}}
+body.luiza{--user:#9b4a7a}body.ika{--user:#2b7a82}
+@media (prefers-color-scheme:dark){body.luiza{--user:#d795bb}body.ika{--user:#6cc3cb}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:520px;margin:0 auto;padding:20px 20px 80px}
+button,select,input{font:inherit;color:var(--ink)}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--user);outline-offset:2px}
+
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.users{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:99px}
+.users button{border:0;background:none;padding:6px 20px;border-radius:99px;color:var(--mute);font-weight:500}
+.users button.on{background:var(--user);color:var(--bg)}
+.lang{font-size:.8rem;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:4px 10px;background:none}
+.lang:hover{color:var(--user);border-color:var(--user)}
+.dates{display:flex;align-items:center;gap:0}
+input[type=date]::-webkit-calendar-picker-indicator{display:none}
+input[type=date]{text-align:center;cursor:pointer;border-bottom:0}
+.dates .x{font-size:1.5rem;line-height:1;padding:2px 6px}
+.dates .x:hover{color:var(--user)}
+input[type=date]{border:0;background:none;color:var(--mute);padding:0;width:auto}
+
+.hero{text-align:center;margin-bottom:24px}
+.ring{position:relative;width:220px;height:220px;margin:0 auto}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:12}
+.ring .bg{stroke:var(--soft)}
+.ring .fg{stroke:var(--user);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.ring .fg.over{stroke:var(--over)}
+.ring .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+@media (prefers-reduced-motion:reduce){.ring .fg{transition:none}}
+.hero .num{font-size:3.4rem;font-weight:300;line-height:1;color:var(--user);letter-spacing:-1px}
+.hero .num.over{color:var(--over)}
+.hero .lab{color:var(--mute);margin-top:6px;font-size:.9rem}
+.macros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:36px}
+.mini{position:relative;width:68px;height:68px;margin:0 auto 6px}
+.mini svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mini circle{fill:none;stroke-width:6}
+.mini .bg{stroke:var(--soft)}
+.mini .fg{stroke:var(--user);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.mini .fg.over{stroke:var(--over)}
+.mini b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:500}
+.mini b.over{color:var(--over)}
+.macros span{font-size:.8rem;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){.mini .fg{transition:none}}
+.hint{color:var(--mute);text-align:center;margin:0 0 36px}
+
+h2{font-size:1rem;font-weight:600;margin:0 0 12px}
+section{margin-bottom:36px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--mute)}
+input,select{border:0;border-bottom:1px solid var(--line);background:none;padding:8px 0;border-radius:0;width:100%;font-size:1rem}
+input:focus,select:focus{border-bottom-color:var(--user);outline:none}
+.add{display:grid;grid-template-columns:1fr 76px 64px 44px;gap:12px;align-items:end;margin-top:14px}
+.plus{height:40px;border:0;border-radius:50%;background:var(--user);color:var(--bg);font-size:1.4rem;line-height:1}
+.btn{border:0;border-radius:8px;padding:11px 18px;background:var(--user);color:var(--bg);font-weight:600}
+.btn.quiet{background:none;color:var(--mute);font-weight:500;padding:11px 10px}
+.list{list-style:none;margin:8px 0;padding:0}
+.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.list .sub{color:var(--mute);font-size:.82rem;display:block}
+.right{white-space:nowrap;display:flex;align-items:center;gap:6px}
+.x{background:none;border:0;color:var(--mute);font-size:1rem;padding:4px 8px}
+.x:hover{color:var(--over)}
+.empty{color:var(--mute);font-size:.9rem;padding:8px 0}
+.msg{color:var(--over);font-size:.85rem;min-height:1.3em;margin:6px 0 0}
+.eat{display:flex;gap:16px;align-items:end;margin:16px 0}
+.eat .field{flex:1}
+.sum{background:var(--soft);border-radius:10px;padding:14px 16px;margin:12px 0 16px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.sum b{font-size:1.5rem;font-weight:500}
+.sum small{color:var(--mute)}
+.actions{display:flex;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--soft);border-radius:99px;display:flex;align-items:center}
+.chip .n{background:none;border:0;padding:6px 4px 6px 14px}
+.chip .x{padding:6px 10px 6px 4px}
+details{border-top:1px solid var(--line);padding:14px 0}
+details:last-of-type{border-bottom:1px solid var(--line)}
+#profBox{border-bottom:1px solid var(--line);margin:-12px 0 28px}
+summary{cursor:pointer;font-weight:500;list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--mute)}
+details[open] summary::after{content:"–"}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 8px}
+.note{color:var(--mute);font-size:.85rem}
+</style>
+</head>
+<body class="luiza">
+<main>
+  <div class="top">
+    <div class="users" id="users"></div>
+    <div class="dates"><button class="x" id="prevDay" aria-label="Previous day">‹</button><input type="date" id="date" aria-label="Date"><button class="x" id="nextDay" aria-label="Next day">›</button></div>
+    <button class="lang" id="lang" aria-label="Language">RU</button>
+  </div>
+
+  <details id="profBox">
+    <summary>Profile &amp; goal</summary>
+    <div class="grid">
+      <label class="field" style="grid-column:1/-1">Your name<input id="name" autocomplete="off"></label>
+      <label class="field">Gender<select id="gender"><option value="f">Female</option><option value="m">Male</option></select></label>
+      <label class="field">Age<input id="age" type="number" min="10" max="100"></label>
+      <label class="field">Height (cm)<input id="height" type="number" min="100" max="230"></label>
+      <label class="field">Weight (kg)<input id="weight" type="number" step="0.1" min="30" max="300"></label>
+      <label class="field">Activity<select id="activity">
+        <option value="1.2">Sedentary</option>
+        <option value="1.375">Light (1–3 workouts/wk)</option>
+        <option value="1.55">Moderate (3–5/wk)</option>
+        <option value="1.725">Very active (6–7/wk)</option></select></label>
+      <label class="field">Goal<select id="goal">
+        <option value="0">Maintain weight</option>
+        <option value="0.25">Lose 0.25 kg/week</option>
+        <option value="0.5">Lose 0.5 kg/week</option>
+        <option value="0.75">Lose 0.75 kg/week</option>
+        <option value="1">Lose 1 kg/week</option></select></label>
+    </div>
+    <p class="note" id="profNote"></p>
+  </details>
+
+  <div id="summary"></div>
+
+  <section>
+    <h2>Add food</h2>
+    <label class="field">Meal name<input id="mname" placeholder="e.g. Chicken curry"></label>
+    <div class="add">
+      <label class="field">Ingredient<input id="ing" list="ingList" placeholder="Search…" autocomplete="off"></label>
+      <label class="field">Amount<input id="grams" type="number" min="0" step="any" inputmode="decimal"></label>
+      <label class="field">Unit<select id="unit"><option value="g">g</option><option value="pcs" disabled>pcs</option></select></label>
+      <button class="plus" id="addIng" aria-label="Add ingredient">+</button>
+    </div>
+    <p class="note" id="pcHint" style="margin:6px 0 0;min-height:1.3em"></p>
+    <datalist id="ingList"></datalist>
+    <p class="msg" id="msg"></p>
+    <ul class="list" id="bItems"></ul>
+
+    <div id="logForm" hidden>
+      <div class="eat">
+        <label class="field">I ate<select id="portion">
+          <option value="1">All of it</option><option value="0.5">1/2</option><option value="0.3333333">1/3</option>
+          <option value="0.25">1/4</option><option value="0.2">1/5</option><option value="0.1666667">1/6</option>
+          <option value="0.125">1/8</option></select></label>
+        <label class="field">Meal<select id="slot"><option value="Breakfast">Breakfast</option><option value="Lunch">Lunch</option><option value="Dinner">Dinner</option><option value="Snack">Snack</option></select></label>
+      </div>
+      <div class="sum" id="bSum"></div>
+      <div class="actions">
+        <button class="btn" id="logBtn">Log it</button>
+        <button class="btn quiet" id="saveRec">Save recipe</button>
+        <button class="btn quiet" id="clearB">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 id="logTitle">Eaten today</h2>
+    <ul class="list" id="logList"></ul>
+  </section>
+
+  <section>
+    <h2>Saved recipes</h2>
+    <div class="chips" id="recipes"></div>
+  </section>
+
+  
+  <details>
+    <summary>Add your own ingredient</summary>
+    <div class="grid">
+      <label class="field">Name<input id="cn"></label>
+      <label class="field">kcal per 100 g<input id="ck" type="number" step="0.1"></label>
+      <label class="field">Protein g<input id="cp" type="number" step="0.1"></label>
+      <label class="field">Fat g<input id="cf" type="number" step="0.1"></label>
+      <label class="field">Carbs g<input id="cc" type="number" step="0.1"></label>
+      <label class="field">Fiber g<input id="cfi" type="number" step="0.1"></label>
+      <label class="field">Grams per piece (optional)<input id="cpc" type="number" step="0.1"></label>
+    </div>
+    <p><button class="btn" id="addCustom">Save ingredient</button></p>
+    <div class="chips" id="customList"></div>
+  </details>
+
+  <details id="syncBox">
+    <summary>Sync across devices</summary>
+    <div class="grid">
+      <label class="field" style="grid-column:1/-1">Firebase database URL<input id="syUrl" placeholder="https://yourproject-default-rtdb.firebaseio.com" autocomplete="off"></label>
+      <label class="field" style="grid-column:1/-1">Secret code (same on every device)<input id="syCode" placeholder="e.g. purple-giraffe-tuesday-42" autocomplete="off"></label>
+    </div>
+    <p><button class="btn" id="syGo">Connect</button> <button class="btn quiet" id="syOff">Disconnect</button></p>
+    <p class="note" id="syncMsg">Not connected. Everything is saved on this device only.</p>
+  </details>
+</main>
+
+<script>
+const RAW=`Chicken breast, raw|120|22.5|2.6|0|0
+Beef mince 15% fat, raw|215|18|15|0|0
+Ham|145|21|6|0|1.5
+Sausage, pork|301|12|27|0|2
+Salmon, raw|208|20|13|0|0
+Cod, raw|82|18|0.7|0|0
+Tuna, canned in water|116|26|1|0|0
+Egg, whole|143|12.6|9.5|0|0.7
+Egg white|52|11|0.2|0|0.7
+Milk 2%|50|3.3|2|0|4.8
+Milk, whole|61|3.2|3.3|0|4.8
+Yogurt, plain|61|3.5|3.3|0|4.7
+Greek yogurt 0%|56|9.5|0|0|4.5
+Greek yogurt, full fat|97|9|5|0|4
+Cottage cheese|98|11|4.3|0|3.4
+Cream cheese|342|6|34|0|4
+Sour cream 20%|206|2.4|20|0|3.4
+Heavy cream|340|2.8|36|0|2.8
+Cheddar|403|25|33|0|1.3
+Mozzarella|280|28|17|0|3
+Parmesan|431|38|29|0|4
+Feta|264|14|21|0|4
+Butter|717|0.9|81|0|0.1
+Olive oil|884|0|100|0|0
+Sunflower oil|884|0|100|0|0
+Mayonnaise|680|1|75|0|0.6
+Rice, white, raw|365|7.1|0.7|1.3|80
+Pasta, raw (dry)|371|13|1.5|3.2|75
+Oats, raw (dry)|389|16.9|6.9|10.6|66
+Muesli|340|10|6|8|63
+Cornflakes|357|7|0.4|3|84
+Bread, white|265|9|3.2|2.7|49
+Bread, wholegrain|247|13|3.4|6.8|41
+Tortilla, wheat|310|8|8|2.5|52
+Flour, wheat|364|10|1|2.7|76
+Potato, raw|77|2|0.1|2.2|17
+Tofu|76|8|4.8|0.3|1.9
+Hummus|166|8|9.6|6|14
+Almonds|579|21|50|12.5|22
+Walnuts|654|15|65|6.7|14
+Peanuts|567|26|49|8.5|16
+Peanut butter|588|25|50|6|20
+Chia seeds|486|17|31|34|42
+Sunflower seeds|584|21|51|8.6|20
+Apple|52|0.3|0.2|2.4|14
+Banana|89|1.1|0.3|2.6|23
+Orange|47|0.9|0.1|2.4|12
+Pear|57|0.4|0.1|3.1|15
+Grapes|69|0.7|0.2|0.9|18
+Strawberries|32|0.7|0.3|2|7.7
+Blueberries|57|0.7|0.3|2.4|14
+Watermelon|30|0.6|0.2|0.4|8
+Lemon|29|1.1|0.3|2.8|9
+Avocado|160|2|15|6.7|9
+Tomato|18|0.9|0.2|1.2|3.9
+Cucumber|15|0.7|0.1|0.5|3.6
+Carrot|41|0.9|0.2|2.8|10
+Broccoli|34|2.8|0.4|2.6|7
+Cauliflower|25|1.9|0.3|2|5
+Spinach|23|2.9|0.4|2.2|3.6
+Lettuce|15|1.4|0.2|1.3|2.9
+Onion|40|1.1|0.1|1.7|9.3
+Garlic|149|6.4|0.5|2.1|33
+Bell pepper|31|1|0.3|2.1|6
+Zucchini|17|1.2|0.3|1|3.1
+Eggplant|25|1|0.2|3|6
+Cabbage|25|1.3|0.1|2.5|6
+Mushrooms|22|3.1|0.3|1|3.3
+Green beans|31|1.8|0.2|2.7|7
+Peas|81|5.4|0.4|5.7|14
+Corn|86|3.3|1.4|2|19
+Beetroot|43|1.6|0.2|2.8|10
+Pumpkin|26|1|0.1|0.5|6.5
+Tomato sauce / passata|29|1.3|0.2|1.5|5.8
+Coconut milk, canned|197|2|21|0|3
+Soy sauce|53|8|0.6|0.8|4.9
+Ketchup|101|1|0.1|0.3|27
+Sugar|387|0|0|0|100
+Honey|304|0.3|0|0.2|82
+Dark chocolate 70%|598|7.8|43|11|46
+Milk chocolate|535|7.7|30|3.4|59
+Whey protein powder|400|80|6|0|8
+Rice cakes|387|8|2.8|4|82
+Kiwi|61|1.1|0.5|3|15
+Peach|39|0.9|0.3|1.5|10
+Mandarin|53|0.8|0.3|1.8|13
+Plum|46|0.7|0.3|1.4|11
+Apricot|48|1.4|0.4|2|11
+Cherries|50|1|0.3|1.6|12
+Mango|60|0.8|0.4|1.6|15
+Pineapple|50|0.5|0.1|1.4|13
+Chicken thigh, raw (skinless)|121|19.7|4.1|0|0
+Beef steak, raw (sirloin)|183|20.7|10.5|0|0
+Pork loin, raw|143|21|5.7|0|0
+Bacon, raw|417|12.6|40|0|1
+Shrimp, raw|85|20.1|0.5|0|0
+Turkey breast, raw|114|23.7|1.5|0|0
+Rice, basmati, raw|350|8.1|0.6|1.2|77
+Rice, brown, raw|370|7.9|2.9|3.5|77
+Quinoa, raw|368|14.1|6.1|7|64
+Buckwheat groats, raw|343|13.3|3.4|10|71.5
+Couscous, raw|376|12.8|0.6|5|77.4
+Lentils, raw|352|24.6|1.1|10.7|63
+Chickpeas, raw|378|20.5|6|12.2|63
+Black beans, raw|341|21.6|1.4|15.5|62.4
+Kidney beans, raw|333|23.6|0.8|24.9|60
+Sweet potato, raw|86|1.6|0.1|3|20
+Greek yogurt 10%|139|6|10|0|3.9
+Raspberries|52|1.2|0.7|6.5|12
+Popcorn, air-popped|387|13|4.5|14.5|78
+Popcorn, buttered/oil|500|9|28|10|57
+Potato chips|536|7|35|4|53
+Pretzels|380|9|3|3|80
+Crackers|430|9|18|3|65
+French fries|312|3.4|15|3.8|41
+Pizza, cheese|266|11|10|2.3|33
+Ice cream, vanilla|207|3.5|11|0.7|24
+Croissant|406|8.2|21|2.6|46
+Cookies|480|6|20|2|70
+Cake, sponge|350|5|15|1|50
+Nutella / choc spread|539|6.3|31|3.4|58
+Jam|250|0.4|0|1|65
+Marshmallow|318|1.8|0.2|0.1|81
+Gummy candy|343|6.9|0|0|77
+Granola|471|10|20|6|64
+Maple syrup|260|0|0|0|67
+Cocoa powder|228|20|14|33|58
+Condensed milk|321|7.9|8.7|0|54
+Churchkhela|430|9|20|4|55
+Tklapi (plum leather)|300|1.5|0.5|5|72
+Tkemali sauce|60|0.5|0.2|1|14
+Adjika|50|2|1.5|3|7
+Khachapuri, Imeretian|270|10|12|1.5|30
+Khachapuri, Adjarian|290|11|15|1.3|27
+Khinkali, meat (cooked)|230|10|10|1|25
+Lobiani|290|9|10|5|40
+Lobio, cooked red beans|127|8.7|0.5|6.4|22.8
+Pkhali, spinach|140|4|12|3|5
+Badrijani nigvzit|180|4|16|3|6
+Mtsvadi, pork (cooked)|260|25|18|0|0
+Kharcho soup|100|7|6|1|5
+Chakhokhbili|150|16|8|1|4
+Satsivi|250|14|20|1.5|5
+Mchadi (cornbread)|170|3|6|2|26
+Ghomi (cornmeal porridge)|90|2|0.5|1|19
+Shoti bread|250|8|1|2.5|52
+Lavash|275|9|1.2|2.5|57
+Pita|275|9|1.2|2.2|56
+Rye bread|259|8.5|3.3|5.8|48
+Baguette|270|9|1.5|2.5|55
+Sulguni cheese|290|20|23|0|1.5
+Imeretian cheese|240|16|18|0|2
+Matsoni|60|3.2|3.2|0|4.5
+Kefir|51|3.4|2|0|4.7
+Ayran|40|2|1.5|0|3.5
+Brie|334|21|28|0|0.5
+Gouda|356|25|27|0|2.2
+Ricotta|174|11|13|0|3
+Halloumi|321|21|25|0|2
+Ghee|900|0|100|0|0
+Coconut oil|862|0|100|0|0
+Egg yolk|322|16|27|0|3.6
+Buckwheat, cooked|92|3.4|0.6|2.7|20
+Rice, white, cooked|130|2.7|0.3|0.4|28
+Pasta, cooked|158|5.8|0.9|1.8|31
+Potato, boiled|87|1.9|0.1|1.8|20
+Oatmeal, cooked|71|2.5|1.5|1.7|12
+Chicken breast, cooked|165|31|3.6|0|0
+Lamb, raw|282|16.6|23.4|0|0
+Veal, raw|131|20|5|0|0
+Beef liver, raw|135|20|3.6|0|3.9
+Chicken liver, raw|119|17|4.8|0|0.7
+Pork shoulder, raw|236|17|19|0|0
+Salami|336|22|27|0|1
+Sardines, canned|208|25|11|0|0
+Mackerel, raw|205|19|14|0|0
+Trout, raw|141|20|6|0|0
+Herring|158|18|9|0|0
+Sea bass, raw|97|18|2|0|0
+Cornmeal|361|6.9|3.9|7.3|77
+Semolina|360|13|1|3.9|73
+Millet|378|11|4.2|8.5|73
+Bulgur|342|12|1.3|12.5|76
+Barley, pearl|352|9.9|1.2|15.6|78
+Rice noodles|360|6|0.6|1.6|80
+Edamame|121|12|5|5|9
+Soy milk|33|2.9|1.6|0.4|1.7
+Oat milk|47|1|1.5|0.8|7
+Almond milk|17|0.6|1.1|0.3|0.3
+Hazelnuts|628|15|61|9.7|17
+Cashews|553|18|44|3.3|30
+Pistachios|560|20|45|10|28
+Pine nuts|673|14|68|3.7|13
+Pumpkin seeds|559|30|49|6|11
+Flaxseed|534|18|42|27|29
+Tahini|595|17|54|9.3|21
+Coconut flakes|660|6.9|65|16|24
+Raisins|299|3.1|0.5|3.7|79
+Dates, dried|282|2.5|0.4|8|75
+Dried figs|249|3.3|0.9|9.8|64
+Dried apricots|241|3.4|0.5|7.3|63
+Prunes|240|2.2|0.4|7.1|64
+Pomegranate|83|1.7|1.2|4|19
+Persimmon|70|0.6|0.2|3.6|19
+Feijoa|55|1|0.6|6.4|13
+Fig, fresh|74|0.8|0.3|2.9|19
+Quince|57|0.4|0.1|1.9|15
+Grapefruit|42|0.8|0.1|1.6|11
+Melon|34|0.8|0.2|0.9|8
+Blackberries|43|1.4|0.5|5.3|10
+Cranberries|46|0.4|0.1|3.6|12
+Coconut, fresh|354|3.3|33|9|15
+Olives|115|0.8|11|3.3|6
+Pickled cucumber|11|0.3|0.2|1|2.3
+Sauerkraut|19|0.9|0.1|2.9|4.3
+Leek|61|1.5|0.3|1.8|14
+Green onion|32|1.8|0.2|2.6|7.3
+Celery|16|0.7|0.2|1.6|3
+Radish|16|0.7|0.1|1.6|3.4
+Asparagus|20|2.2|0.1|2.1|3.9
+Kale|49|4.3|0.9|3.6|9
+Brussels sprouts|43|3.4|0.3|3.8|9
+Okra|33|1.9|0.2|3.2|7
+Chili pepper|40|1.9|0.4|1.5|9
+Cilantro|23|2.1|0.5|2.8|3.7
+Parsley|36|3|0.8|3.3|6.3
+Dill|43|3.5|1.1|2.1|7
+Basil|23|3.2|0.6|1.6|2.7
+Tarragon (tarkhun)|295|23|7|7|50
+Tomato paste|82|4.3|0.5|4.1|19
+Sun-dried tomatoes|258|14|3|12|56
+Mustard|66|4|4|3|6
+Vinegar|18|0|0|0|0
+Wine, red|85|0.1|0|0|2.6
+Wine, white|82|0.1|0|0|2.6
+Beer|43|0.5|0|0|3.6
+Chacha / vodka|231|0|0|0|0
+Cola|42|0|0|0|10.6
+Orange juice|45|0.7|0.2|0.2|10
+Apple juice|46|0.1|0.1|0.2|11
+Coffee, black|2|0.1|0|0|0
+Tea, unsweetened|1|0|0|0|0.2`;
+const DB=RAW.split('\n').map(l=>{const a=l.split('|');return{n:a[0],k:+a[1],p:+a[2],f:+a[3],fi:+a[4],c:+a[5]}});
+
+// grams per piece (edible part, medium size)
+const PIECE={'Egg, whole':50,'Egg white':33,'Apple':180,'Banana':120,'Orange':130,'Pear':180,'Lemon':60,'Avocado':150,'Tomato':120,'Cucumber':200,'Carrot':60,'Bell pepper':150,'Zucchini':200,'Eggplant':300,'Onion':110,'Garlic':4,'Potato, raw':170,'Sweet potato, raw':130,'Beetroot':80,'Strawberries':15,'Grapes':5,'Almonds':1.2,'Walnuts':2.5,'Bread, white':30,'Bread, wholegrain':35,'Rice cakes':9,'Chicken breast, raw':180,'Mushrooms':18,'Kiwi':70,'Peach':150,'Mandarin':80,'Plum':65,'Apricot':35,'Cherries':8,'Mango':200,'Pineapple':100,'Popcorn, air-popped':3,'Popcorn, buttered/oil':3,'Potato chips':2,'Crackers':3,'Croissant':60,'Cookies':10,'Marshmallow':8,'Gummy candy':3,'Churchkhela':60,'Khinkali, meat (cooked)':80,'Pita':60,'Egg yolk':17,'Hazelnuts':1.5,'Cashews':1.5,'Dates, dried':8,'Dried figs':20,'Dried apricots':8,'Prunes':10,'Pomegranate':280,'Persimmon':170,'Feijoa':40,'Fig, fresh':50,'Quince':200,'Grapefruit':250,'Olives':4,'Pickled cucumber':60,'Leek':90,'Green onion':15,'Celery':40,'Radish':10,'Chili pepper':15};
+const pcOf=i=>i&&(i.pc||PIECE[i.n])||0;
+const KEY='calorie-counter-v1';
+const NAMES={luiza:1,ika:2};
+const blankUser=()=>({prof:{name:'',gender:'f',age:'',height:'',weight:'',activity:'1.375',goal:'0.5'},log:[]});
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.users)S={cur:'luiza',custom:[],recipes:[],users:{luiza:blankUser(),ika:blankUser()}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+S.recipes=S.recipes||[];S.custom=S.custom||[];
+for(const u in S.users){(S.users[u].recipes||[]).forEach(r=>{if(!S.recipes.some(x=>x.name.toLowerCase()===r.name.toLowerCase()))S.recipes.push(r)});delete S.users[u].recipes}
+S.recipes.forEach(r=>r.id=r.id||uid());S.custom.forEach(c=>c.id=c.id||uid());
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+let LANG=(()=>{try{const l=localStorage.getItem('calorie-lang');if(l)return l}catch(e){}return (navigator.language||'').toLowerCase().startsWith('ru')?'ru':'en'})();
+const RU={
+'Calorie Counter':'Счётчик калорий','Profile & goal':'Профиль и цель','Your name':'Ваше имя','Gender':'Пол','Female':'Женский','Male':'Мужской','Age':'Возраст','Height (cm)':'Рост (см)','Weight (kg)':'Вес (кг)','Activity':'Активность',
+'Sedentary':'Сидячий образ жизни','Light (1–3 workouts/wk)':'Лёгкая (1–3 тренировки/нед.)','Moderate (3–5/wk)':'Средняя (3–5 в неделю)','Very active (6–7/wk)':'Очень высокая (6–7 в неделю)',
+'Goal':'Цель','Maintain weight':'Поддерживать вес','Lose 0.25 kg/week':'Худеть на 0,25 кг в неделю','Lose 0.5 kg/week':'Худеть на 0,5 кг в неделю','Lose 0.75 kg/week':'Худеть на 0,75 кг в неделю','Lose 1 kg/week':'Худеть на 1 кг в неделю',
+'Add food':'Добавить еду','Meal name':'Название блюда','e.g. Chicken curry':'напр. Курица карри','Ingredient':'Ингредиент','Search…':'Поиск…','Amount':'Количество','Unit':'Ед.','pcs':'шт','Grams per piece (optional)':'Граммов в штуке (необязательно)','1 pc ≈ {g} g':'1 шт ≈ {g} г','Add ingredient':'Добавить ингредиент',
+'I ate':'Я съел(а)','All of it':'Всё','Meal':'Приём пищи','Breakfast':'Завтрак','Lunch':'Обед','Dinner':'Ужин','Snack':'Перекус','Log it':'Записать','Save recipe':'Сохранить рецепт','Clear':'Очистить','Saved recipes':'Сохранённые рецепты',
+'Add your own ingredient':'Добавить свой ингредиент','Name':'Название','kcal per 100 g':'ккал на 100 г','Protein g':'Белки, г','Fat g':'Жиры, г','Carbs g':'Углеводы, г','Fiber g':'Клетчатка, г','Save ingredient':'Сохранить ингредиент',
+'Sync across devices':'Синхронизация между устройствами','Firebase database URL':'Адрес базы данных Firebase','Secret code (same on every device)':'Секретный код (одинаковый на всех устройствах)','e.g. purple-giraffe-tuesday-42':'напр. purple-giraffe-tuesday-42','Connect':'Подключить','Disconnect':'Отключить',
+'Previous day':'Предыдущий день','Next day':'Следующий день','Date':'Дата','Language':'Язык',
+'kcal':'ккал','g':'г','kcal eaten':'ккал съедено','kcal left':'ккал осталось','kcal over':'ккал сверх нормы','of':'из','left':'ост.','over':'сверх','Protein':'Белки','Fat':'Жиры','Carbs':'Углеводы','Fiber':'Клетчатка',
+'Fill in':'Заполните','above to see your daily targets.':'выше, чтобы увидеть дневные нормы.',
+'Maintenance ≈ {a} kcal/day. Your daily target: {b} kcal, {c}g protein, {d}g fat, {e}g carbs, {f}g fiber.':'Для поддержания веса ≈ {a} ккал в день. Ваша дневная норма: {b} ккал, белки {c} г, жиры {d} г, углеводы {e} г, клетчатка {f} г.',
+'Held at a safe minimum, so weight loss may be slower than chosen.':'Норма удержана на безопасном минимуме, поэтому похудение может идти медленнее выбранного.','These are estimates.':'Это приблизительные оценки.',
+'Whole meal':'Всё блюдо','You ate':'Вы съели','Remove':'Убрать','Delete':'Удалить','Delete recipe':'Удалить рецепт','P':'Б','F':'Ж','C':'У','Fi':'Кл',
+'Nothing logged yet.':'Пока ничего не записано.','Build a meal, then tap “Save recipe” to reuse it later.':'Составьте блюдо и нажмите «Сохранить рецепт», чтобы использовать его снова.',
+'Eaten today':'Съедено сегодня','Eaten yesterday':'Съедено вчера','Eaten tomorrow':'Съедено завтра','Eaten on {d}':'Съедено {d}',
+'Choose an ingredient from the suggestions, or add your own below.':'Выберите ингредиент из подсказок или добавьте свой ниже.','Enter an amount.':'Введите количество.','Give the meal a name to save it as a recipe.':'Назовите блюдо, чтобы сохранить его как рецепт.',
+'Not connected. Everything is saved on this device only.':'Не подключено. Всё хранится только на этом устройстве.','Connecting…':'Подключаемся…','Paste the full database URL, starting with https://':'Вставьте полный адрес базы данных, начиная с https://',
+'Choose a longer secret code (at least 8 characters, e.g. three random words).':'Выберите более длинный секретный код (минимум 8 символов, например три случайных слова).',
+'Could not connect. Check the URL and that your database rules are published.':'Не удалось подключиться. Проверьте адрес и что правила базы данных опубликованы.','Disconnected. Everything stays saved on this device.':'Отключено. Всё остаётся сохранённым на этом устройстве.',
+'Synced at {t}. Changes on any device appear on the others within about 20 seconds.':'Синхронизировано в {t}. Изменения на любом устройстве появятся на остальных примерно за 20 секунд.',
+'Can’t reach the database. Your changes are saved here and will sync when you’re back online.':'Нет связи с базой данных. Изменения сохранены здесь и синхронизируются, когда появится интернет.',
+'Can’t reach the database. Check the URL and your rules.':'Нет связи с базой данных. Проверьте адрес и правила.',
+'Luiza':'Луиза','Ika':'Ика'};
+const RUI={'Chicken breast, raw':'Куриная грудка, сырая','Beef mince 15% fat, raw':'Говяжий фарш 15%, сырой','Ham':'Ветчина','Sausage, pork':'Колбаса свиная','Salmon, raw':'Лосось, сырой','Cod, raw':'Треска, сырая','Tuna, canned in water':'Тунец консервированный в собственном соку','Egg, whole':'Яйцо целое','Egg white':'Яичный белок','Milk 2%':'Молоко 2%','Milk, whole':'Молоко цельное','Yogurt, plain':'Йогурт натуральный','Greek yogurt 0%':'Греческий йогурт 0%','Greek yogurt, full fat':'Греческий йогурт жирный','Cottage cheese':'Творог','Cream cheese':'Сливочный сыр','Sour cream 20%':'Сметана 20%','Heavy cream':'Сливки жирные','Cheddar':'Чеддер','Mozzarella':'Моцарелла','Parmesan':'Пармезан','Feta':'Фета','Butter':'Сливочное масло','Olive oil':'Оливковое масло','Sunflower oil':'Подсолнечное масло','Mayonnaise':'Майонез','Rice, white, raw':'Рис белый, сырой','Pasta, raw (dry)':'Макароны, сухие','Oats, raw (dry)':'Овсяные хлопья, сухие','Muesli':'Мюсли','Cornflakes':'Кукурузные хлопья','Bread, white':'Хлеб белый','Bread, wholegrain':'Хлеб цельнозерновой','Tortilla, wheat':'Тортилья пшеничная','Flour, wheat':'Мука пшеничная','Potato, raw':'Картофель, сырой','Tofu':'Тофу','Hummus':'Хумус','Almonds':'Миндаль','Walnuts':'Грецкие орехи','Peanuts':'Арахис','Peanut butter':'Арахисовая паста','Chia seeds':'Семена чиа','Sunflower seeds':'Семечки подсолнечника','Apple':'Яблоко','Banana':'Банан','Orange':'Апельсин','Pear':'Груша','Grapes':'Виноград','Strawberries':'Клубника','Blueberries':'Голубика','Watermelon':'Арбуз','Lemon':'Лимон','Avocado':'Авокадо','Tomato':'Помидор','Cucumber':'Огурец','Carrot':'Морковь','Broccoli':'Брокколи','Cauliflower':'Цветная капуста','Spinach':'Шпинат','Lettuce':'Салат листовой','Onion':'Лук репчатый','Garlic':'Чеснок','Bell pepper':'Болгарский перец','Zucchini':'Кабачок','Eggplant':'Баклажан','Cabbage':'Капуста белокочанная','Mushrooms':'Шампиньоны','Green beans':'Стручковая фасоль','Peas':'Зелёный горошек','Corn':'Кукуруза','Beetroot':'Свёкла','Pumpkin':'Тыква','Tomato sauce / passata':'Томатный соус / пассата','Coconut milk, canned':'Кокосовое молоко','Soy sauce':'Соевый соус','Ketchup':'Кетчуп','Sugar':'Сахар','Honey':'Мёд','Dark chocolate 70%':'Тёмный шоколад 70%','Milk chocolate':'Молочный шоколад','Whey protein powder':'Сывороточный протеин','Rice cakes':'Рисовые хлебцы','Chicken thigh, raw (skinless)':'Куриное бедро без кожи, сырое','Beef steak, raw (sirloin)':'Говяжий стейк, сырой','Pork loin, raw':'Свиная корейка, сырая','Bacon, raw':'Бекон, сырой','Shrimp, raw':'Креветки, сырые','Turkey breast, raw':'Грудка индейки, сырая','Rice, basmati, raw':'Рис басмати, сырой','Rice, brown, raw':'Рис бурый, сырой','Quinoa, raw':'Киноа, сухая','Buckwheat groats, raw':'Гречка, сухая','Couscous, raw':'Кускус, сухой','Lentils, raw':'Чечевица, сухая','Chickpeas, raw':'Нут, сухой','Black beans, raw':'Чёрная фасоль, сухая','Kidney beans, raw':'Красная фасоль, сухая','Sweet potato, raw':'Батат, сырой','Greek yogurt 10%':'Греческий йогурт 10%','Raspberries':'Малина','Kiwi':'Киви','Peach':'Персик','Mandarin':'Мандарин','Plum':'Слива','Apricot':'Абрикос','Cherries':'Черешня','Mango':'Манго','Pineapple':'Ананас',
+'Popcorn, air-popped':'Попкорн без масла','Popcorn, buttered/oil':'Попкорн с маслом','Potato chips':'Картофельные чипсы','Pretzels':'Крендельки','Crackers':'Крекеры','French fries':'Картофель фри','Pizza, cheese':'Пицца с сыром','Ice cream, vanilla':'Мороженое пломбир','Croissant':'Круассан','Cookies':'Печенье','Cake, sponge':'Бисквитный торт','Nutella / choc spread':'Шоколадная паста','Jam':'Джем','Marshmallow':'Зефир маршмеллоу','Gummy candy':'Мармелад жевательный','Granola':'Гранола','Maple syrup':'Кленовый сироп','Cocoa powder':'Какао-порошок','Condensed milk':'Сгущённое молоко','Churchkhela':'Чурчхела','Tklapi (plum leather)':'Ткемали сушёный (тклапи)','Tkemali sauce':'Соус ткемали','Adjika':'Аджика','Khachapuri, Imeretian':'Хачапури по-имеретински','Khachapuri, Adjarian':'Хачапури по-аджарски','Khinkali, meat (cooked)':'Хинкали с мясом','Lobiani':'Лобиани','Lobio, cooked red beans':'Лобио (фасоль варёная)','Pkhali, spinach':'Пхали шпинатный','Badrijani nigvzit':'Баклажаны с орехами','Mtsvadi, pork (cooked)':'Мцвади свиной (готовый)','Kharcho soup':'Харчо','Chakhokhbili':'Чахохбили','Satsivi':'Сациви','Mchadi (cornbread)':'Мчади','Ghomi (cornmeal porridge)':'Гоми','Shoti bread':'Хлеб шотис пури','Lavash':'Лаваш','Pita':'Пита','Rye bread':'Хлеб ржаной','Baguette':'Багет','Sulguni cheese':'Сулугуни','Imeretian cheese':'Имеретинский сыр','Matsoni':'Мацони','Kefir':'Кефир','Ayran':'Айран','Brie':'Бри','Gouda':'Гауда','Ricotta':'Рикотта','Halloumi':'Халуми','Ghee':'Топлёное масло гхи','Coconut oil':'Кокосовое масло','Egg yolk':'Яичный желток','Buckwheat, cooked':'Гречка варёная','Rice, white, cooked':'Рис варёный','Pasta, cooked':'Макароны варёные','Potato, boiled':'Картофель варёный','Oatmeal, cooked':'Овсянка варёная','Chicken breast, cooked':'Куриная грудка, готовая','Lamb, raw':'Баранина, сырая','Veal, raw':'Телятина, сырая','Beef liver, raw':'Говяжья печень, сырая','Chicken liver, raw':'Куриная печень, сырая','Pork shoulder, raw':'Свиная лопатка, сырая','Salami':'Салями','Sardines, canned':'Сардины консервированные','Mackerel, raw':'Скумбрия, сырая','Trout, raw':'Форель, сырая','Herring':'Сельдь','Sea bass, raw':'Сибас, сырой','Cornmeal':'Кукурузная мука','Semolina':'Манка','Millet':'Пшено','Bulgur':'Булгур','Barley, pearl':'Перловка','Rice noodles':'Рисовая лапша','Edamame':'Эдамаме','Soy milk':'Соевое молоко','Oat milk':'Овсяное молоко','Almond milk':'Миндальное молоко','Hazelnuts':'Фундук','Cashews':'Кешью','Pistachios':'Фисташки','Pine nuts':'Кедровые орехи','Pumpkin seeds':'Тыквенные семечки','Flaxseed':'Семена льна','Tahini':'Тахини','Coconut flakes':'Кокосовая стружка','Raisins':'Изюм','Dates, dried':'Финики','Dried figs':'Инжир сушёный','Dried apricots':'Курага','Prunes':'Чернослив','Pomegranate':'Гранат','Persimmon':'Хурма','Feijoa':'Фейхоа','Fig, fresh':'Инжир свежий','Quince':'Айва','Grapefruit':'Грейпфрут','Melon':'Дыня','Blackberries':'Ежевика','Cranberries':'Клюква','Coconut, fresh':'Кокос свежий','Olives':'Оливки','Pickled cucumber':'Солёный огурец','Sauerkraut':'Квашеная капуста','Leek':'Лук-порей','Green onion':'Зелёный лук','Celery':'Сельдерей','Radish':'Редис','Asparagus':'Спаржа','Kale':'Кале','Brussels sprouts':'Брюссельская капуста','Okra':'Бамия','Chili pepper':'Острый перец','Cilantro':'Кинза','Parsley':'Петрушка','Dill':'Укроп','Basil':'Базилик','Tarragon (tarkhun)':'Тархун сушёный','Tomato paste':'Томатная паста','Sun-dried tomatoes':'Вяленые томаты','Mustard':'Горчица','Vinegar':'Уксус','Wine, red':'Вино красное','Wine, white':'Вино белое','Beer':'Пиво','Chacha / vodka':'Чача / водка','Cola':'Кола','Orange juice':'Апельсиновый сок','Apple juice':'Яблочный сок','Coffee, black':'Кофе чёрный','Tea, unsweetened':'Чай без сахара'};
+const tr=k=>LANG==='ru'&&RU[k]!==undefined?RU[k]:k;
+const tf=(k,v)=>tr(k).replace(/\{(\w+)\}/g,(m,x)=>v[x]);
+const dn=n=>LANG==='ru'&&RUI[n]?RUI[n]:n;
+const nm=u=>S.users[u].prof.name||tr(u==='luiza'?'Luiza':'Ika');
+const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint']);
+const tn=[],ta=[];
+const skipEl=el=>{for(let e=el;e;e=e.parentElement){if(e.tagName==='SCRIPT'||e.tagName==='STYLE'||SKIP.has(e.id))return true}return false};
+function collect(){
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  while(w.nextNode()){const n=w.currentNode;if(n.nodeValue.trim()&&!skipEl(n.parentElement))tn.push({n,o:n.nodeValue})}
+  document.querySelectorAll('[placeholder],[aria-label]').forEach(el=>{if(skipEl(el)&&el.id!=='lang')return;['placeholder','aria-label'].forEach(a=>{if(el.hasAttribute(a))ta.push({el,a,o:el.getAttribute(a)})})});
+}
+function applyStatic(){
+  tn.forEach(x=>{const t=x.o.trim();x.n.nodeValue=x.o.replace(t,tr(t))});
+  ta.forEach(x=>x.el.setAttribute(x.a,tr(x.o)));
+  document.title=tr('Calorie Counter');document.documentElement.lang=LANG;
+  $('lang').textContent=LANG==='ru'?'EN':'RU';
+}
+
+const U=()=>S.users[S.cur];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r0=n=>Math.round(n), r1=n=>Math.round(n*10)/10;
+const all=()=>DB.concat(S.custom);
+const find=n=>{n=n.trim().toLowerCase();return all().find(i=>i.n.toLowerCase()===n||(RUI[i.n]||'').toLowerCase()===n)};
+const fmtD=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>fmtD(new Date());
+function shiftDay(n){
+  const v=$('date').value||today(),[y,m,d]=v.split('-').map(Number);
+  $('date').value=fmtD(new Date(y,m-1,d+n));refreshDay();
+}
+function refreshDay(){
+  const v=$('date').value,t=new Date(),y=new Date(t.getFullYear(),t.getMonth(),t.getDate()-1),n=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1);
+  const key=v===today()?'Eaten today':v===fmtD(y)?'Eaten yesterday':v===fmtD(n)?'Eaten tomorrow':null;
+  $('logTitle').textContent=key?tr(key):tf('Eaten on {d}',{d:v});
+  renderSummary();renderLog();
+}
+let B=[];
+
+function sumItems(items){
+  const t={k:0,p:0,f:0,c:0,fi:0};
+  items.forEach(it=>{const d=find(it.n);if(!d)return;const x=it.g/100;t.k+=d.k*x;t.p+=d.p*x;t.f+=d.f*x;t.c+=d.c*x;t.fi+=d.fi*x});
+  return t;
+}
+function targets(p){
+  const w=+p.weight,h=+p.height,a=+p.age;
+  if(!w||!h||!a)return null;
+  const bmr=10*w+6.25*h-5*a+(p.gender==='m'?5:-161);
+  const tdee=bmr*(+p.activity);
+  const rate=+p.goal;
+  const floor=p.gender==='m'?1500:1200;
+  let k=tdee-rate*7700/7, limited=false;
+  if(k<floor){k=floor;limited=true}
+  const prot=w*(rate>0?1.6:1.4);
+  const fat=k*0.27/9;
+  const carb=Math.max(0,(k-prot*4-fat*9)/4);
+  const fib=Math.max(25,k/1000*14);
+  return{bmr,tdee,k,p:prot,f:fat,c:carb,fi:fib,limited};
+}
+
+function renderUsers(){
+  document.body.className=S.cur;
+  $('users').innerHTML=Object.keys(NAMES).map(u=>`<button class="${u===S.cur?'on':''}" data-u="${u}">${esc(nm(u))}</button>`).join('');
+}
+function loadProfile(){
+  const p=U().prof;
+  ['name','gender','age','height','weight','activity','goal'].forEach(k=>$(k).value=p[k]??'');
+}
+function wheel(num,lab,frac,over){
+  const C=2*Math.PI*96, off=C*(1-Math.max(0,Math.min(1,frac)));
+  return `<div class="ring"><svg viewBox="0 0 220 220" role="img" aria-label="${lab}"><circle class="bg" cx="110" cy="110" r="96"/><circle class="fg ${over?'over':''}" cx="110" cy="110" r="96" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg>
+  <div class="in"><div class="num ${over?'over':''}">${num}</div><div class="lab">${lab}</div></div></div>`;
+}
+function renderSummary(){
+  const T=targets(U().prof);
+  const e={k:0,p:0,f:0,c:0,fi:0};
+  U().log.filter(x=>x.date===$('date').value).forEach(x=>{for(const k in e)e[k]+=x[k]});
+  if(!T){
+    $('summary').innerHTML=`<div class="hero">${wheel(r0(e.k),tr('kcal eaten'),0,false)}</div>
+      <p class="hint">${tr('Fill in')} <a href="#profBox" id="openProf" style="color:var(--user)">${tr('Profile & goal')}</a> ${tr('above to see your daily targets.')}</p>`;
+  }else{
+    const left=T.k-e.k, over=left<0;
+    const m=(lab,key)=>{const l=T[key]-e[key],o=l<0,C=2*Math.PI*29,off=C*(1-Math.max(0,Math.min(1,e[key]/T[key])));
+      return `<div><div class="mini"><svg viewBox="0 0 68 68" role="img" aria-label="${tr(lab)}"><circle class="bg" cx="34" cy="34" r="29"/><circle class="fg ${o?'over':''}" cx="34" cy="34" r="29" stroke-dasharray="${C}" stroke-dashoffset="${off}"/></svg><b class="${o?'over':''}">${o?'+':''}${r0(Math.abs(l))}${tr('g')}</b></div><span>${tr(lab)} ${tr(o?'over':'left')}</span></div>`};
+    $('summary').innerHTML=`<div class="hero">${wheel((over?'+':'')+r0(Math.abs(left)),tr('kcal '+(over?'over':'left'))+' · '+r0(e.k)+' '+tr('of')+' '+r0(T.k),e.k/T.k,over)}</div>
+      <div class="macros">${m('Protein','p')}${m('Fat','f')}${m('Carbs','c')}${m('Fiber','fi')}</div>`;
+  }
+  $('profNote').innerHTML=T?tf('Maintenance ≈ {a} kcal/day. Your daily target: {b} kcal, {c}g protein, {d}g fat, {e}g carbs, {f}g fiber.',{a:r0(T.tdee),b:r0(T.k),c:r0(T.p),d:r0(T.f),e:r0(T.c),f:r0(T.fi)})+(T.limited?' '+tr('Held at a safe minimum, so weight loss may be slower than chosen.'):'')+' '+tr('These are estimates.'):'';
+}
+function portion(){
+  return +$('portion').value;
+}
+function renderBuilder(){
+  $('bItems').innerHTML=B.map((it,i)=>`<li><span>${esc(dn(it.n))} <span class="sub">${it.pcs?it.pcs+' '+tr('pcs')+' · ':''}${it.g} ${tr('g')}</span></span><span class="right"><span class="sub">${r0(sumItems([it]).k)} ${tr('kcal')}</span><button class="x" data-rm="${i}" aria-label="${tr('Remove')} ${esc(dn(it.n))}">✕</button></span></li>`).join('');
+  $('logForm').hidden=!B.length;
+  const t=sumItems(B), p=portion();
+  $('bSum').innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}</span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*p)}</b> ${tr('kcal')}</span>`;
+}
+function renderLog(){
+  const day=U().log.filter(e=>e.date===$('date').value);
+  $('logList').innerHTML=day.length?day.map(e=>`<li><span>${esc(tr(e.name))}<span class="sub">${tr(e.slot)} · ${tr('P')} ${r0(e.p)} ${tr('F')} ${r0(e.f)} ${tr('C')} ${r0(e.c)} ${tr('Fi')} ${r0(e.fi)}</span></span><span class="right">${r0(e.k)} ${tr('kcal')}<button class="x" data-del="${e.id}" aria-label="${tr('Delete')}">✕</button></span></li>`).join(''):`<li class="empty">${tr('Nothing logged yet.')}</li>`;
+}
+function renderRecipes(){
+  const r=S.recipes;
+  $('recipes').innerHTML=r.length?r.map((x,i)=>`<span class="chip"><button class="n" data-load="${i}">${esc(x.name)}</button><button class="x" data-delrec="${i}" aria-label="${tr('Delete recipe')}">✕</button></span>`).join(''):`<span class="empty">${tr('Build a meal, then tap “Save recipe” to reuse it later.')}</span>`;
+}
+function renderCustom(){
+  $('customList').innerHTML=S.custom.map((c,i)=>`<span class="chip"><span style="padding:6px 4px 6px 14px">${esc(c.n)} · ${r0(c.k)}</span><button class="x" data-delcus="${i}" aria-label="${tr('Delete')}">✕</button></span>`).join('');
+  $('ingList').innerHTML=all().map(i=>`<option value="${esc(dn(i.n))}">${r0(i.k)} ${tr('kcal')}/100${tr('g')}</option>`).join('');
+}
+function renderAll(){renderUsers();loadProfile();renderSummary();renderBuilder();renderLog();renderRecipes();renderCustom()}
+
+$('users').onclick=e=>{const u=e.target.dataset.u;if(u){S.cur=u;save();B=[];$('mname').value='';renderAll()}};
+['name','gender','age','height','weight','activity','goal'].forEach(k=>$(k).addEventListener('input',()=>{U().prof[k]=$(k).value;save();renderSummary();if(k==='name')renderUsers();queue('PUT','users/'+S.cur+'/prof',U().prof)}));
+$('summary').onclick=e=>{if(e.target.id==='openProf'){e.preventDefault();$('profBox').open=true;$('profBox').scrollIntoView({behavior:'smooth'})}};
+$('date').onchange=refreshDay;
+$('date').onclick=()=>{try{$('date').showPicker()}catch(e){}};
+$('prevDay').onclick=()=>shiftDay(-1);
+$('nextDay').onclick=()=>shiftDay(1);
+$('portion').onchange=renderBuilder;
+let lastIng=null;
+function refreshUnit(){
+  const d=find($('ing').value),pc=pcOf(d),u=$('unit');
+  u.options[1].disabled=!pc;
+  const key=d?d.n:null;
+  if(key!==lastIng){u.value=pc?'pcs':'g';lastIng=key}
+  if(!pc)u.value='g';
+  $('pcHint').textContent=pc?tf('1 pc ≈ {g} g',{g:pc}):'';
+}
+$('ing').addEventListener('input',refreshUnit);
+function addIng(){
+  const d=find($('ing').value), q=+$('grams').value;
+  if(!d){$('msg').textContent=tr('Choose an ingredient from the suggestions, or add your own below.');return}
+  if(!(q>0)){$('msg').textContent=tr('Enter an amount.');return}
+  $('msg').textContent='';
+  const pc=pcOf(d);
+  B.push(pc&&$('unit').value==='pcs'?{n:d.n,g:Math.round(q*pc*10)/10,pcs:q}:{n:d.n,g:q});
+  $('ing').value='';$('grams').value='';lastIng=null;refreshUnit();$('ing').focus();renderBuilder();
+}
+$('addIng').onclick=addIng;
+$('grams').onkeydown=e=>{if(e.key==='Enter')addIng()};
+$('bItems').onclick=e=>{const i=e.target.dataset.rm;if(i!==undefined){B.splice(+i,1);renderBuilder()}};
+$('clearB').onclick=()=>{B=[];$('mname').value='';$('msg').textContent='';renderBuilder()};
+$('logBtn').onclick=()=>{
+  const p=portion();
+  const t=sumItems(B);
+  const ent={id:Date.now(),date:$('date').value,slot:$('slot').value,name:$('mname').value.trim()||'Meal',share:p,k:t.k*p,p:t.p*p,f:t.f*p,c:t.c*p,fi:t.fi*p};
+  U().log.push(ent);queue('PUT','users/'+S.cur+'/log/'+ent.id,ent);
+  save();B=[];$('mname').value='';$('portion').value='1';$('msg').textContent='';
+  renderBuilder();renderLog();renderSummary();
+};
+$('saveRec').onclick=()=>{
+  const n=$('mname').value.trim();
+  if(!n){$('msg').textContent=tr('Give the meal a name to save it as a recipe.');$('mname').focus();return}
+  const r=S.recipes,ex=r.findIndex(x=>x.name.toLowerCase()===n.toLowerCase());
+  const rec={id:ex>=0?r[ex].id:uid(),name:n,items:B.map(x=>({...x}))};
+  if(ex>=0)r[ex]=rec;else r.push(rec);
+  $('msg').textContent='';save();renderRecipes();queue('PUT','recipes/'+rec.id,rec);
+};
+$('recipes').onclick=e=>{
+  const l=e.target.dataset.load,d=e.target.dataset.delrec;
+  if(l!==undefined){const r=S.recipes[+l];B=r.items.map(x=>({...x}));$('mname').value=r.name;renderBuilder();$('portion').focus()}
+  if(d!==undefined){const [r]=S.recipes.splice(+d,1);save();renderRecipes();queue('DELETE','recipes/'+r.id)}
+};
+$('logList').onclick=e=>{const id=e.target.dataset.del;if(id){U().log=U().log.filter(x=>x.id!=id);save();renderLog();renderSummary();queue('DELETE','users/'+S.cur+'/log/'+id)}};
+$('addCustom').onclick=()=>{
+  const n=$('cn').value.trim(),v=id=>+$(id).value||0;
+  if(!n||!$('ck').value)return;
+  S.custom.filter(c=>c.n.toLowerCase()===n.toLowerCase()).forEach(c=>queue('DELETE','custom/'+c.id));
+  S.custom=S.custom.filter(c=>c.n.toLowerCase()!==n.toLowerCase());
+  const ci={id:uid(),n,k:v('ck'),p:v('cp'),f:v('cf'),c:v('cc'),fi:v('cfi')};if(v('cpc')>0)ci.pc=v('cpc');
+  S.custom.push(ci);queue('PUT','custom/'+ci.id,ci);
+  ['cn','ck','cp','cf','cc','cfi','cpc'].forEach(id=>$(id).value='');
+  save();renderCustom();
+};
+$('customList').onclick=e=>{const i=e.target.dataset.delcus;if(i!==undefined){const [c]=S.custom.splice(+i,1);save();renderCustom();queue('DELETE','custom/'+c.id)}};
+
+// ---------- sync (Firebase Realtime Database, plain REST) ----------
+let cfg=null,out=[],busy=false,pending=false,timer=null,es=null;
+try{cfg=JSON.parse(localStorage.getItem('calorie-sync'))}catch(e){}
+try{out=JSON.parse(localStorage.getItem('calorie-out'))||[]}catch(e){}
+const saveOut=()=>{try{localStorage.setItem('calorie-out',JSON.stringify(out))}catch(e){}};
+const surl=p=>cfg.url.replace(/\/+$/,'')+'/h/'+encodeURIComponent(cfg.code)+(p?'/'+p:'')+'.json';
+let lastSay=['Not connected. Everything is saved on this device only.'];
+const renderSay=()=>$('syncMsg').textContent=tf(lastSay[0],lastSay[1]||{});
+const say=(k,v)=>{lastSay=[k,v];renderSay()};
+function queue(m,p,b){
+  if(!cfg)return;
+  out=out.filter(o=>o.p!==p);out.push({m,p,b});saveOut();
+  clearTimeout(timer);timer=setTimeout(sync,700);
+}
+async function flush(){
+  while(out.length){
+    const o=out[0];
+    const r=await fetch(surl(o.p),{method:o.m,body:o.m==='PUT'?JSON.stringify(o.b):undefined});
+    if(!r.ok)throw new Error('http '+r.status);
+    out.shift();saveOut();
+  }
+}
+const vals=(o,key)=>Object.values(o||{}).sort((a,b)=>String(a[key]).localeCompare(String(b[key]),undefined,{numeric:true}));
+function apply(d){
+  const n={custom:vals(d.custom,'n'),recipes:vals(d.recipes,'name'),users:{}};
+  for(const u in NAMES){
+    const ru=(d.users||{})[u]||{};
+    n.users[u]={prof:ru.prof?{...blankUser().prof,...ru.prof}:S.users[u].prof,log:vals(ru.log,'id')};
+  }
+  const same=JSON.stringify([n.custom.map(x=>x.id),n.recipes,Object.values(n.users).map(x=>[x.prof,x.log.map(l=>l.id)])])===
+    JSON.stringify([vals(Object.fromEntries(S.custom.map(c=>[c.id,c])),'n').map(x=>x.id),vals(Object.fromEntries(S.recipes.map(c=>[c.id,c])),'name'),Object.keys(NAMES).map(u=>[S.users[u].prof,S.users[u].log.map(l=>l.id)])]);
+  if(same)return;
+  S.custom=n.custom;S.recipes=n.recipes;
+  for(const u in NAMES){S.users[u].prof=n.users[u].prof;S.users[u].log=n.users[u].log}
+  save();
+  if(!$('profBox').contains(document.activeElement))loadProfile();
+  renderSummary();renderLog();renderRecipes();renderCustom();
+}
+async function sync(){
+  if(!cfg)return;
+  if(busy){pending=true;return}
+  busy=true;
+  try{
+    await flush();
+    const r=await fetch(surl(''));
+    if(!r.ok)throw new Error('http '+r.status);
+    apply((await r.json())||{});
+    await flush();
+    say('Synced at {t}. Changes on any device appear on the others within about 20 seconds.',{t:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  }catch(e){
+    say(out.length?'Can’t reach the database. Your changes are saved here and will sync when you’re back online.':'Can’t reach the database. Check the URL and your rules.');
+  }
+  busy=false;
+  if(pending){pending=false;sync()}
+}
+function stream(){
+  if(es){es.close();es=null}
+  if(!cfg||typeof EventSource==='undefined')return;
+  let t;
+  es=new EventSource(surl(''));
+  const kick=()=>{clearTimeout(t);t=setTimeout(sync,300)};
+  es.addEventListener('put',kick);es.addEventListener('patch',kick);
+}
+async function connect(){
+  const url=$('syUrl').value.trim(),code=$('syCode').value.trim().toLowerCase().replace(/[^\p{L}\p{N}_-]/gu,'-');
+  if(!/^https:\/\/.+/.test(url)){say('Paste the full database URL, starting with https://');return}
+  if(code.length<8){say('Choose a longer secret code (at least 8 characters, e.g. three random words).');return}
+  cfg={url,code};
+  try{
+    say('Connecting…');
+    const r=await fetch(surl(''));
+    if(!r.ok)throw new Error('http '+r.status);
+    const d=(await r.json())||{};
+    // first connection: upload anything this device has that the database doesn't
+    out=[];
+    S.custom.forEach(c=>{if(!(d.custom||{})[c.id])out.push({m:'PUT',p:'custom/'+c.id,b:c})});
+    S.recipes.forEach(c=>{if(!(d.recipes||{})[c.id])out.push({m:'PUT',p:'recipes/'+c.id,b:c})});
+    for(const u in NAMES){
+      const ru=(d.users||{})[u]||{};
+      if(!ru.prof)out.push({m:'PUT',p:'users/'+u+'/prof',b:S.users[u].prof});
+      S.users[u].log.forEach(l=>{if(!(ru.log||{})[l.id])out.push({m:'PUT',p:'users/'+u+'/log/'+l.id,b:l})});
+    }
+    saveOut();
+    localStorage.setItem('calorie-sync',JSON.stringify(cfg));
+    $('syCode').value=code;
+    stream();
+    await sync();
+  }catch(e){cfg=null;say('Could not connect. Check the URL and that your database rules are published.')}
+}
+$('syGo').onclick=connect;
+$('syOff').onclick=()=>{if(es){es.close();es=null}cfg=null;out=[];saveOut();try{localStorage.removeItem('calorie-sync')}catch(e){}say('Disconnected. Everything stays saved on this device.')};
+if(cfg){$('syUrl').value=cfg.url;$('syCode').value=cfg.code;say('Connecting…');stream()}
+setInterval(sync,20000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});
+window.addEventListener('online',sync);
+
+$('lang').onclick=()=>{LANG=LANG==='ru'?'en':'ru';try{localStorage.setItem('calorie-lang',LANG)}catch(e){}$('msg').textContent='';applyStatic();renderAll();refreshDay();renderSay();refreshUnit()};
+collect();applyStatic();
+$('date').value=today();
+renderAll();refreshDay();renderSay();sync();
+</script>
+</body>
+</html>
