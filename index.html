@@ -81,6 +81,7 @@ input:focus,select:focus{border-bottom-color:var(--user);outline:none}
 .chip{background:var(--soft);border-radius:99px;display:flex;align-items:center}
 .chip .n{background:none;border:0;padding:6px 4px 6px 14px}
 .chip .x{padding:6px 10px 6px 4px}
+.chip .x.ed:hover{color:var(--user)}
 details{border-top:1px solid var(--line);padding:14px 0}
 details:last-of-type{border-bottom:1px solid var(--line)}
 #profBox{border-bottom:1px solid var(--line);margin:-12px 0 28px}
@@ -90,6 +91,9 @@ summary::after{content:"+";color:var(--mute)}
 details[open] summary::after{content:"–"}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 8px}
 .note{color:var(--mute);font-size:.85rem}
+.banner{background:var(--soft);border-radius:10px;padding:8px 8px 8px 14px;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--ink);font-size:.9rem}
+.banner[hidden]{display:none}
+.banner .btn{min-height:0;padding:6px 10px}
 
 /* ---- logged entries: expand / edit ---- */
 .ent{flex-wrap:wrap}
@@ -143,6 +147,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;min-height:1.4em
 .sum{flex-wrap:wrap}
 .actions{flex-wrap:wrap}
 .btn{min-height:44px}
+.banner .btn{min-height:0}
 .chip{max-width:100%}
 .chip .n{text-align:left;overflow-wrap:anywhere;min-height:36px}
 @media (max-width:380px){main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}.users button{padding:8px 12px}.grid{grid-template-columns:1fr}.eat{flex-direction:column;align-items:stretch}}
@@ -183,6 +188,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;min-height:1.4em
 
   <section>
     <h2>Add food</h2>
+    <div class="banner" id="editBanner" hidden></div>
     <label class="field">Meal name<input id="mname" placeholder="e.g. Chicken curry"></label>
     <div class="add">
       <div class="combo"><label class="field">Ingredient<input id="ing" placeholder="Search…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next"></label><ul class="sug" id="sug" hidden></ul></div>
@@ -516,6 +522,7 @@ const RU={
 'Goal':'Цель','Maintain weight':'Поддерживать вес','Lose 0.25 kg/week':'Худеть на 0,25 кг в неделю','Lose 0.5 kg/week':'Худеть на 0,5 кг в неделю','Lose 0.75 kg/week':'Худеть на 0,75 кг в неделю','Lose 1 kg/week':'Худеть на 1 кг в неделю',
 'Add food':'Добавить еду','Meal name':'Название блюда','e.g. Chicken curry':'напр. Курица карри','Ingredient':'Ингредиент','Search…':'Поиск…','Amount':'Количество','Unit':'Ед.','pcs':'шт','Grams per piece (optional)':'Граммов в штуке (необязательно)','1 pc ≈ {g} g':'1 шт ≈ {g} г','Add ingredient':'Добавить ингредиент',
 'I ate':'Я съел(а)','All of it':'Всё','Meal':'Приём пищи','Breakfast':'Завтрак','Lunch':'Обед','Dinner':'Ужин','Snack':'Перекус','Log it':'Записать','Save recipe':'Сохранить рецепт','Clear':'Очистить','Saved recipes':'Сохранённые рецепты',
+'Edit recipe':'Изменить рецепт','Update recipe':'Обновить рецепт','Editing recipe: {n}':'Редактирование рецепта: {n}','A recipe with that name already exists.':'Рецепт с таким названием уже существует.',
 'Add your own ingredient':'Добавить свой ингредиент','Name':'Название','kcal per 100 g':'ккал на 100 г','Protein g':'Белки, г','Fat g':'Жиры, г','Carbs g':'Углеводы, г','Fiber g':'Клетчатка, г','Save ingredient':'Сохранить ингредиент',
 'Sync across devices':'Синхронизация между устройствами','Firebase database URL':'Адрес базы данных Firebase','Secret code (same on every device)':'Секретный код (одинаковый на всех устройствах)','e.g. purple-giraffe-tuesday-42':'напр. purple-giraffe-tuesday-42','Connect':'Подключить','Disconnect':'Отключить',
 'Previous day':'Предыдущий день','Next day':'Следующий день','Date':'Дата','Language':'Язык',
@@ -543,7 +550,7 @@ const tr=k=>LANG==='ru'&&RU[k]!==undefined?RU[k]:k;
 const tf=(k,v)=>tr(k).replace(/\{(\w+)\}/g,(m,x)=>v[x]);
 const dn=n=>LANG==='ru'&&RUI[n]?RUI[n]:n;
 const nm=u=>S.users[u].prof.name||tr(u==='luiza'?'Luiza':'Ika');
-const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint']);
+const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint','editBanner','saveRec']);
 const tn=[],ta=[];
 const skipEl=el=>{for(let e=el;e;e=e.parentElement){if(e.tagName==='SCRIPT'||e.tagName==='STYLE'||SKIP.has(e.id))return true}return false};
 function collect(){
@@ -576,7 +583,7 @@ function refreshDay(){
   $('logTitle').textContent=key?tr(key):tf('Eaten on {d}',{d:v});
   renderSummary();renderLog();
 }
-let B=[];
+let B=[],editRec=null;
 let openId=null,ED=null;
 
 function sumItems(items){
@@ -632,11 +639,21 @@ function renderSummary(){
 function portion(){
   return +$('portion').value;
 }
-function renderBuilder(){
-  $('bItems').innerHTML=B.map((it,i)=>`<li><span>${esc(dn(it.n))} <span class="sub">${it.pcs?it.pcs+' '+tr('pcs')+' · ':''}${it.g} ${tr('g')}</span></span><span class="right"><span class="sub">${r0(sumItems([it]).k)} ${tr('kcal')}</span><button class="x" data-rm="${i}" aria-label="${tr('Remove')} ${esc(dn(it.n))}">✕</button></span></li>`).join('');
-  $('logForm').hidden=!B.length;
+function renderBSum(){
   const t=sumItems(B), p=portion();
   $('bSum').innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}</span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*p)}</b> ${tr('kcal')}</span>`;
+}
+function renderBuilder(){
+  // leave edit mode if the recipe being edited no longer exists (e.g. removed on another device)
+  const rb=editRec?S.recipes.find(x=>x.id===editRec):null;
+  if(editRec&&!rb)editRec=null;
+  const bn=$('editBanner');
+  bn.hidden=!rb;
+  bn.innerHTML=rb?`<span>${esc(tf('Editing recipe: {n}',{n:rb.name}))}</span><button class="btn quiet" id="cancelEdit">${tr('Cancel')}</button>`:'';
+  $('saveRec').textContent=tr(rb?'Update recipe':'Save recipe');
+  $('bItems').innerHTML=B.map((it,i)=>`<li><span>${esc(dn(it.n))} <span class="sub"><span data-kc="${i}">${r0(sumItems([it]).k)}</span> ${tr('kcal')}${it.pcs?`<span data-pc="${i}"> · ${it.pcs} ${tr('pcs')}</span>`:''}</span></span><span class="right"><input class="gi" type="number" min="0" step="any" inputmode="decimal" value="${it.g}" data-bg="${i}" aria-label="${tr('Amount (g)')}"><span class="sub" style="display:inline">${tr('g')}</span><button class="x" data-rm="${i}" aria-label="${tr('Remove')} ${esc(dn(it.n))}">✕</button></span></li>`).join('');
+  $('logForm').hidden=!B.length;
+  renderBSum();
 }
 
 // ---------- logged entries: view ingredients, edit ----------
@@ -704,21 +721,21 @@ function renderLog(){
 }
 function renderRecipes(){
   const r=S.recipes;
-  $('recipes').innerHTML=r.length?r.map((x,i)=>`<span class="chip"><button class="n" data-load="${i}">${esc(x.name)}</button><button class="x" data-delrec="${i}" aria-label="${tr('Delete recipe')}">✕</button></span>`).join(''):`<span class="empty">${tr('Build a meal, then tap “Save recipe” to reuse it later.')}</span>`;
+  $('recipes').innerHTML=r.length?r.map((x,i)=>`<span class="chip"><button class="n" data-load="${i}">${esc(x.name)}</button><button class="x ed" data-editrec="${i}" aria-label="${tr('Edit recipe')}">✎</button><button class="x" data-delrec="${i}" aria-label="${tr('Delete recipe')}">✕</button></span>`).join(''):`<span class="empty">${tr('Build a meal, then tap “Save recipe” to reuse it later.')}</span>`;
 }
 function renderCustom(){
   $('customList').innerHTML=S.custom.map((c,i)=>`<span class="chip"><span style="padding:6px 4px 6px 14px">${esc(c.n)} · ${r0(c.k)}</span><button class="x" data-delcus="${i}" aria-label="${tr('Delete')}">✕</button></span>`).join('');
 }
 function renderAll(){renderUsers();loadProfile();renderSummary();renderBuilder();renderLog();renderRecipes();renderCustom()}
 
-$('users').onclick=e=>{const u=e.target.dataset.u;if(u){S.cur=u;save();B=[];openId=null;ED=null;$('mname').value='';renderAll()}};
+$('users').onclick=e=>{const u=e.target.dataset.u;if(u){S.cur=u;save();B=[];editRec=null;openId=null;ED=null;$('mname').value='';renderAll()}};
 ['name','gender','age','height','weight','activity','goal'].forEach(k=>$(k).addEventListener('input',()=>{U().prof[k]=$(k).value;save();renderSummary();if(k==='name')renderUsers();queue('PUT','users/'+S.cur+'/prof',U().prof)}));
 $('summary').onclick=e=>{if(e.target.id==='openProf'){e.preventDefault();$('profBox').open=true;$('profBox').scrollIntoView({behavior:'smooth'})}};
 $('date').onchange=refreshDay;
 $('date').onclick=()=>{try{$('date').showPicker()}catch(e){}};
 $('prevDay').onclick=()=>shiftDay(-1);
 $('nextDay').onclick=()=>shiftDay(1);
-$('portion').onchange=renderBuilder;
+$('portion').onchange=renderBSum;
 let lastIng=null;
 function refreshUnit(){
   const d=find($('ing').value),pc=pcOf(d),u=$('unit');
@@ -763,27 +780,59 @@ function addIng(){
 $('addIng').onclick=addIng;
 $('grams').onkeydown=e=>{if(e.key==='Enter')addIng()};
 $('bItems').onclick=e=>{const i=e.target.dataset.rm;if(i!==undefined){B.splice(+i,1);renderBuilder()}};
-$('clearB').onclick=()=>{B=[];$('mname').value='';$('msg').textContent='';renderBuilder()};
+// edit an ingredient's amount in the builder (no re-render, so the field keeps focus)
+$('bItems').oninput=e=>{
+  const i=e.target.dataset.bg;if(i===undefined)return;
+  const it=B[+i];if(!it)return;
+  it.g=+e.target.value||0;delete it.pcs;
+  const kc=$('bItems').querySelector('[data-kc="'+i+'"]');if(kc)kc.textContent=r0(sumItems([it]).k);
+  const pc=$('bItems').querySelector('[data-pc="'+i+'"]');if(pc)pc.remove();
+  renderBSum();
+};
+function resetBuilder(){B=[];editRec=null;$('mname').value='';$('msg').textContent='';$('portion').value='1'}
+$('clearB').onclick=()=>{resetBuilder();renderBuilder()};
+$('editBanner').onclick=e=>{if(e.target.closest('#cancelEdit')){resetBuilder();renderBuilder()}};
 $('logBtn').onclick=()=>{
+  const items=B.filter(x=>x.g>0);
+  if(!items.length){$('msg').textContent=tr('Enter an amount.');return}
   const p=portion();
-  const t=sumItems(B);
-  const ent={id:Date.now(),date:$('date').value,slot:$('slot').value,name:$('mname').value.trim()||'Meal',share:p,items:B.map(x=>({...x})),k:t.k*p,p:t.p*p,f:t.f*p,c:t.c*p,fi:t.fi*p};
+  const t=sumItems(items);
+  const ent={id:Date.now(),date:$('date').value,slot:$('slot').value,name:$('mname').value.trim()||'Meal',share:p,items:items.map(x=>({...x})),k:t.k*p,p:t.p*p,f:t.f*p,c:t.c*p,fi:t.fi*p};
   U().log.push(ent);queue('PUT','users/'+S.cur+'/log/'+ent.id,ent);
-  save();B=[];$('mname').value='';$('portion').value='1';$('msg').textContent='';
+  save();resetBuilder();
   renderBuilder();renderLog();renderSummary();
 };
 $('saveRec').onclick=()=>{
   const n=$('mname').value.trim();
   if(!n){$('msg').textContent=tr('Give the meal a name to save it as a recipe.');$('mname').focus();return}
-  const r=S.recipes,ex=r.findIndex(x=>x.name.toLowerCase()===n.toLowerCase());
-  const rec={id:ex>=0?r[ex].id:uid(),name:n,items:B.map(x=>({...x}))};
+  const items=B.filter(x=>x.g>0).map(x=>({...x}));
+  if(!items.length){$('msg').textContent=tr('Enter an amount.');return}
+  const r=S.recipes,same=x=>x.name.toLowerCase()===n.toLowerCase();
+  let ex;
+  if(editRec){
+    ex=r.findIndex(x=>x.id===editRec);
+    // renaming onto a different existing recipe would create a duplicate
+    if(r.some(x=>x.id!==editRec&&same(x))){$('msg').textContent=tr('A recipe with that name already exists.');return}
+  }else ex=r.findIndex(same);
+  const rec={id:ex>=0?r[ex].id:uid(),name:n,items};
   if(ex>=0)r[ex]=rec;else r.push(rec);
-  $('msg').textContent='';save();renderRecipes();queue('PUT','recipes/'+rec.id,rec);
+  save();queue('PUT','recipes/'+rec.id,rec);
+  if(editRec)resetBuilder();else $('msg').textContent='';
+  renderBuilder();renderRecipes();
 };
 $('recipes').onclick=e=>{
-  const l=e.target.dataset.load,d=e.target.dataset.delrec;
-  if(l!==undefined){const r=S.recipes[+l];B=r.items.map(x=>({...x}));$('mname').value=r.name;renderBuilder();$('portion').focus()}
-  if(d!==undefined){const [r]=S.recipes.splice(+d,1);save();renderRecipes();queue('DELETE','recipes/'+r.id)}
+  const l=e.target.dataset.load,d=e.target.dataset.delrec,ed=e.target.dataset.editrec;
+  if(l!==undefined){const r=S.recipes[+l];editRec=null;B=r.items.map(x=>({...x}));$('mname').value=r.name;$('msg').textContent='';renderBuilder();$('portion').focus()}
+  if(ed!==undefined){
+    const r=S.recipes[+ed];editRec=r.id;B=r.items.map(x=>({...x}));
+    $('mname').value=r.name;$('portion').value='1';$('msg').textContent='';
+    renderBuilder();$('editBanner').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  if(d!==undefined){
+    const [r]=S.recipes.splice(+d,1);
+    if(r.id===editRec)resetBuilder();
+    save();renderBuilder();renderRecipes();queue('DELETE','recipes/'+r.id)
+  }
 };
 
 // ---- logged-entry interactions (open, edit, add/remove ingredients, save) ----
