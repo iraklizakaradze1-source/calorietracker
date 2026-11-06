@@ -120,6 +120,14 @@ details[open] summary::after{content:"–"}
 .right .gi{width:84px;text-align:right}
 .det .add{margin-top:8px}
 
+/* ---- cooked weight / serving size options ---- */
+[hidden]{display:none!important}
+.opt{margin:14px 0 4px;border-top:1px solid var(--line)}
+.tog{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer;font-weight:500}
+input[type=checkbox]{-webkit-appearance:checkbox;appearance:auto;width:22px;height:22px;min-height:0;padding:0;border:0;accent-color:var(--user);flex-shrink:0;margin:0}
+.optbody{padding:0 0 12px 34px}
+.optbody .note{margin:6px 0 0}
+
 /* ---- mobile / iPhone / Russian fit ---- */
 html{-webkit-text-size-adjust:100%}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -231,11 +239,24 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;min-height:1.4em
     <ul class="list" id="bItems"></ul>
 
     <div id="logForm" hidden>
+      <div class="opt">
+        <label class="tog"><input type="checkbox" id="cwOn"><span>Weight after cooking</span></label>
+        <div class="optbody" id="cwBox" hidden>
+          <label class="field">Total weight after cooking (g)<input id="cw" type="number" min="0" step="any" inputmode="decimal"></label>
+          <p class="note" id="cwNote"></p>
+        </div>
+        <label class="tog"><input type="checkbox" id="svOn"><span>Serving / piece size</span></label>
+        <div class="optbody" id="svBox" hidden>
+          <label class="field">One piece = (g)<input id="sv" type="number" min="0" step="any" inputmode="decimal"></label>
+          <p class="note" id="svNote">Empty = whole recipe is one piece.</p>
+        </div>
+      </div>
       <div class="eat">
-        <label class="field">I ate<select id="portion">
+        <label class="field" id="portW">I ate<select id="portion">
           <option value="1">All of it</option><option value="0.5">1/2</option><option value="0.3333333">1/3</option>
           <option value="0.25">1/4</option><option value="0.2">1/5</option><option value="0.1666667">1/6</option>
           <option value="0.125">1/8</option></select></label>
+        <label class="field" id="npW" hidden>Pieces eaten<input id="np" type="number" min="0" step="any" inputmode="decimal" value="1"></label>
         <label class="field">Meal<select id="slot"><option value="Breakfast">Breakfast</option><option value="Lunch">Lunch</option><option value="Dinner">Dinner</option><option value="Snack">Snack</option></select></label>
       </div>
       <div class="sum" id="bSum"></div>
@@ -557,14 +578,16 @@ const RU={
 'Synced at {t}. Changes on any device appear on the others within about 20 seconds.':'Синхронизировано в {t}. Изменения на любом устройстве появятся на остальных примерно за 20 секунд.',
 'Can’t reach the database. Your changes are saved here and will sync when you’re back online.':'Нет связи с базой данных. Изменения сохранены здесь и синхронизируются, когда появится интернет.',
 'Can’t reach the database. Check the URL and your rules.':'Нет связи с базой данных. Проверьте адрес и правила.',
-'Whole recipe ≈ {g} g':'Весь рецепт ≈ {g} г','Menu':'Меню','Luiza':'Луиза','Ika':'Ика'};
+'Whole recipe ≈ {g} g':'Весь рецепт ≈ {g} г','Menu':'Меню','Luiza':'Луиза','Ika':'Ика',
+'Weight after cooking':'Вес после готовки','Total weight after cooking (g)':'Общий вес после готовки (г)','Serving / piece size':'Размер порции / куска','One piece = (g)':'Один кусок = (г)','Empty = whole recipe is one piece.':'Пусто = весь рецепт — один кусок.','Pieces eaten':'Съедено кусков',
+'Total weight':'Общий вес','1 piece':'1 кусок','Raw ingredients ≈ {g} g':'Сырые ингредиенты ≈ {g} г','kcal / 100 g':'ккал / 100 г'};
 const RUI={'Chicken breast, raw':'Куриная грудка, сырая','Beef mince 15% fat, raw':'Говяжий фарш 15%, сырой','Ham':'Ветчина','Sausage, pork':'Колбаса свиная','Salmon, raw':'Лосось, сырой','Cod, raw':'Треска, сырая','Tuna, canned in water':'Тунец консервированный в собственном соку','Egg, whole':'Яйцо целое','Egg white':'Яичный белок','Milk 2%':'Молоко 2%','Milk, whole':'Молоко цельное','Yogurt, plain':'Йогурт натуральный','Greek yogurt 0%':'Греческий йогурт 0%','Greek yogurt, full fat':'Греческий йогурт жирный','Cottage cheese':'Творог','Cream cheese':'Сливочный сыр','Sour cream 20%':'Сметана 20%','Heavy cream':'Сливки жирные','Cheddar':'Чеддер','Mozzarella':'Моцарелла','Parmesan':'Пармезан','Feta':'Фета','Butter':'Сливочное масло','Olive oil':'Оливковое масло','Sunflower oil':'Подсолнечное масло','Mayonnaise':'Майонез','Rice, white, raw':'Рис белый, сырой','Pasta, raw (dry)':'Макароны, сухие','Oats, raw (dry)':'Овсяные хлопья, сухие','Muesli':'Мюсли','Cornflakes':'Кукурузные хлопья','Bread, white':'Хлеб белый','Bread, wholegrain':'Хлеб цельнозерновой','Tortilla, wheat':'Тортилья пшеничная','Flour, wheat':'Мука пшеничная','Potato, raw':'Картофель, сырой','Tofu':'Тофу','Hummus':'Хумус','Almonds':'Миндаль','Walnuts':'Грецкие орехи','Peanuts':'Арахис','Peanut butter':'Арахисовая паста','Chia seeds':'Семена чиа','Sunflower seeds':'Семечки подсолнечника','Apple':'Яблоко','Banana':'Банан','Orange':'Апельсин','Pear':'Груша','Grapes':'Виноград','Strawberries':'Клубника','Blueberries':'Голубика','Watermelon':'Арбуз','Lemon':'Лимон','Avocado':'Авокадо','Tomato':'Помидор','Cucumber':'Огурец','Carrot':'Морковь','Broccoli':'Брокколи','Cauliflower':'Цветная капуста','Spinach':'Шпинат','Lettuce':'Салат листовой','Onion':'Лук репчатый','Garlic':'Чеснок','Bell pepper':'Болгарский перец','Zucchini':'Кабачок','Eggplant':'Баклажан','Cabbage':'Капуста белокочанная','Mushrooms':'Шампиньоны','Green beans':'Стручковая фасоль','Peas':'Зелёный горошек','Corn':'Кукуруза','Beetroot':'Свёкла','Pumpkin':'Тыква','Tomato sauce / passata':'Томатный соус / пассата','Coconut milk, canned':'Кокосовое молоко','Soy sauce':'Соевый соус','Ketchup':'Кетчуп','Sugar':'Сахар','Honey':'Мёд','Dark chocolate 70%':'Тёмный шоколад 70%','Milk chocolate':'Молочный шоколад','Whey protein powder':'Сывороточный протеин','Rice cakes':'Рисовые хлебцы','Chicken thigh, raw (skinless)':'Куриное бедро без кожи, сырое','Beef steak, raw (sirloin)':'Говяжий стейк, сырой','Pork loin, raw':'Свиная корейка, сырая','Bacon, raw':'Бекон, сырой','Shrimp, raw':'Креветки, сырые','Turkey breast, raw':'Грудка индейки, сырая','Rice, basmati, raw':'Рис басмати, сырой','Rice, brown, raw':'Рис бурый, сырой','Quinoa, raw':'Киноа, сухая','Buckwheat groats, raw':'Гречка, сухая','Couscous, raw':'Кускус, сухой','Lentils, raw':'Чечевица, сухая','Chickpeas, raw':'Нут, сухой','Black beans, raw':'Чёрная фасоль, сухая','Kidney beans, raw':'Красная фасоль, сухая','Sweet potato, raw':'Батат, сырой','Greek yogurt 10%':'Греческий йогурт 10%','Raspberries':'Малина','Kiwi':'Киви','Peach':'Персик','Mandarin':'Мандарин','Plum':'Слива','Apricot':'Абрикос','Cherries':'Черешня','Mango':'Манго','Pineapple':'Ананас',
 'Popcorn, air-popped':'Попкорн без масла','Popcorn, buttered/oil':'Попкорн с маслом','Potato chips':'Картофельные чипсы','Pretzels':'Крендельки','Crackers':'Крекеры','French fries':'Картофель фри','Pizza, cheese':'Пицца с сыром','Ice cream, vanilla':'Мороженое пломбир','Croissant':'Круассан','Cookies':'Печенье','Cake, sponge':'Бисквитный торт','Nutella / choc spread':'Шоколадная паста','Jam':'Джем','Marshmallow':'Зефир маршмеллоу','Gummy candy':'Мармелад жевательный','Granola':'Гранола','Maple syrup':'Кленовый сироп','Cocoa powder':'Какао-порошок','Condensed milk':'Сгущённое молоко','Churchkhela':'Чурчхела','Tklapi (plum leather)':'Ткемали сушёный (тклапи)','Tkemali sauce':'Соус ткемали','Adjika':'Аджика','Khachapuri, Imeretian':'Хачапури по-имеретински','Khachapuri, Adjarian':'Хачапури по-аджарски','Khinkali, meat (cooked)':'Хинкали с мясом','Lobiani':'Лобиани','Lobio, cooked red beans':'Лобио (фасоль варёная)','Pkhali, spinach':'Пхали шпинатный','Badrijani nigvzit':'Баклажаны с орехами','Mtsvadi, pork (cooked)':'Мцвади свиной (готовый)','Kharcho soup':'Харчо','Chakhokhbili':'Чахохбили','Satsivi':'Сациви','Mchadi (cornbread)':'Мчади','Ghomi (cornmeal porridge)':'Гоми','Shoti bread':'Хлеб шотис пури','Lavash':'Лаваш','Pita':'Пита','Rye bread':'Хлеб ржаной','Baguette':'Багет','Sulguni cheese':'Сулугуни','Imeretian cheese':'Имеретинский сыр','Matsoni':'Мацони','Kefir':'Кефир','Ayran':'Айран','Brie':'Бри','Gouda':'Гауда','Ricotta':'Рикотта','Halloumi':'Халуми','Ghee':'Топлёное масло гхи','Coconut oil':'Кокосовое масло','Egg yolk':'Яичный желток','Buckwheat, cooked':'Гречка варёная','Rice, white, cooked':'Рис варёный','Pasta, cooked':'Макароны варёные','Potato, boiled':'Картофель варёный','Oatmeal, cooked':'Овсянка варёная','Chicken breast, cooked':'Куриная грудка, готовая','Lamb, raw':'Баранина, сырая','Veal, raw':'Телятина, сырая','Beef liver, raw':'Говяжья печень, сырая','Chicken liver, raw':'Куриная печень, сырая','Pork shoulder, raw':'Свиная лопатка, сырая','Salami':'Салями','Sardines, canned':'Сардины консервированные','Mackerel, raw':'Скумбрия, сырая','Trout, raw':'Форель, сырая','Herring':'Сельдь','Sea bass, raw':'Сибас, сырой','Cornmeal':'Кукурузная мука','Semolina':'Манка','Millet':'Пшено','Bulgur':'Булгур','Barley, pearl':'Перловка','Rice noodles':'Рисовая лапша','Edamame':'Эдамаме','Soy milk':'Соевое молоко','Oat milk':'Овсяное молоко','Almond milk':'Миндальное молоко','Hazelnuts':'Фундук','Cashews':'Кешью','Pistachios':'Фисташки','Pine nuts':'Кедровые орехи','Pumpkin seeds':'Тыквенные семечки','Flaxseed':'Семена льна','Tahini':'Тахини','Coconut flakes':'Кокосовая стружка','Raisins':'Изюм','Dates, dried':'Финики','Dried figs':'Инжир сушёный','Dried apricots':'Курага','Prunes':'Чернослив','Pomegranate':'Гранат','Persimmon':'Хурма','Feijoa':'Фейхоа','Fig, fresh':'Инжир свежий','Quince':'Айва','Grapefruit':'Грейпфрут','Melon':'Дыня','Blackberries':'Ежевика','Cranberries':'Клюква','Coconut, fresh':'Кокос свежий','Olives':'Оливки','Pickled cucumber':'Солёный огурец','Sauerkraut':'Квашеная капуста','Leek':'Лук-порей','Green onion':'Зелёный лук','Celery':'Сельдерей','Radish':'Редис','Asparagus':'Спаржа','Kale':'Кале','Brussels sprouts':'Брюссельская капуста','Okra':'Бамия','Chili pepper':'Острый перец','Cilantro':'Кинза','Parsley':'Петрушка','Dill':'Укроп','Basil':'Базилик','Tarragon (tarkhun)':'Тархун сушёный','Barberry (barbaris), fresh':'Барбарис свежий','Tomato paste':'Томатная паста','Sun-dried tomatoes':'Вяленые томаты','Mustard':'Горчица','Vinegar':'Уксус','Wine, red':'Вино красное','Wine, white':'Вино белое','Beer':'Пиво','Chacha / vodka':'Чача / водка','Cola':'Кола','Orange juice':'Апельсиновый сок','Apple juice':'Яблочный сок','Coffee, black':'Кофе чёрный','Tea, unsweetened':'Чай без сахара'};
 const tr=k=>LANG==='ru'&&RU[k]!==undefined?RU[k]:k;
 const tf=(k,v)=>tr(k).replace(/\{(\w+)\}/g,(m,x)=>v[x]);
 const dn=n=>LANG==='ru'&&RUI[n]?RUI[n]:n;
 const nm=u=>S.users[u].prof.name||tr(u==='luiza'?'Luiza':'Ika');
-const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint','editBanner','saveRec']);
+const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint','editBanner','saveRec','cwNote']);
 const tn=[],ta=[];
 const skipEl=el=>{for(let e=el;e;e=e.parentElement){if(e.tagName==='SCRIPT'||e.tagName==='STYLE'||SKIP.has(e.id))return true}return false};
 function collect(){
@@ -584,11 +607,12 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const r0=n=>Math.round(n), r1=n=>Math.round(n*10)/10;
 const base=()=>DB.concat(S.custom);
 const findBase=n=>{n=n.trim().toLowerCase();return base().find(i=>i.n.toLowerCase()===n)};
+// a saved recipe used as an ingredient: per-100 g is based on the weight AFTER cooking when one is saved
 const recIngs=()=>S.recipes.filter(r=>r.id!==editRec).map(r=>{
-  const t=sumItems(r.items),g=r.items.reduce((s,i)=>s+i.g,0);
+  const t=sumItems(r.items),g0=r.items.reduce((s,i)=>s+i.g,0),g=r.cw>0?r.cw:g0;
   if(!(g>0))return null;
   const x={k:t.k/g*100,p:t.p/g*100,f:t.f/g*100,c:t.c/g*100,fi:t.fi/g*100};
-  return{n:'🍲 '+r.name,...x,x,rec:1,tot:g};
+  return{n:'🍲 '+r.name,...x,x,rec:1,tot:g,pc:r.sv>0?r.sv:0};
 }).filter(Boolean);
 const all=()=>base().concat(recIngs());
 const find=n=>{n=n.trim().toLowerCase();return all().find(i=>i.n.toLowerCase()===n||(RUI[i.n]||'').toLowerCase()===n)};
@@ -658,13 +682,46 @@ function renderSummary(){
   }
   $('profNote').innerHTML=T?tf('Maintenance ≈ {a} kcal/day. Your daily target: {b} kcal, {c}g protein, {d}g fat, {e}g carbs, {f}g fiber.',{a:r0(T.tdee),b:r0(T.k),c:r0(T.p),d:r0(T.f),e:r0(T.c),f:r0(T.fi)})+(T.limited?' '+tr('Held at a safe minimum, so weight loss may be slower than chosen.'):'')+' '+tr('These are estimates.'):'';
 }
+
+// ---------- cooked weight / serving size ----------
+// raw = sum of ingredient grams, cw = weight after cooking (0 = not used),
+// W = weight everything is measured against (cooked if given, else raw), sv = grams in one piece (0 = off; blank = whole recipe)
+function bOpts(){
+  const raw=B.reduce((s,i)=>s+(i.g>0?i.g:0),0);
+  const cw=$('cwOn').checked&&+$('cw').value>0?+$('cw').value:0;
+  const W=cw||raw;
+  const sv=$('svOn').checked?(+$('sv').value>0?+$('sv').value:W):0;
+  return{raw,cw,W,sv};
+}
+function infoLine(t,o){
+  if(!(o.W>0))return '';
+  return `${tr('Total weight')}: ${r0(o.W)} ${tr('g')}`
+    +(o.cw?` (${tf('Raw ingredients ≈ {g} g',{g:r0(o.raw)})})`:'')
+    +` · ${r0(t.k/o.W*100)} ${tr('kcal / 100 g')}`
+    +(o.sv?` · ${tr('1 piece')} = ${r0(o.sv)} ${tr('g')} (${r0(t.k*o.sv/o.W)} ${tr('kcal')})`:'');
+}
+function syncOpts(){
+  const cwOn=$('cwOn').checked,svOn=$('svOn').checked;
+  $('cwBox').hidden=!cwOn;$('svBox').hidden=!svOn;$('npW').hidden=!svOn;$('portW').hidden=svOn;
+  const o=bOpts();
+  $('cwNote').textContent=cwOn?tf('Raw ingredients ≈ {g} g',{g:r0(o.raw)}):'';
+  $('sv').placeholder=o.W>0?String(r0(o.W)):'';
+}
+function optsChanged(){syncOpts();renderBSum()}
+function setOpts(r){
+  $('cwOn').checked=!!r.cw;$('cw').value=r.cw||'';
+  $('svOn').checked=!!r.sv;$('sv').value=r.sv||'';
+  $('np').value='1';$('portion').value='1';
+}
 function portion(){
+  const o=bOpts();
+  if(o.sv>0&&o.W>0)return (+$('np').value||0)*o.sv/o.W;
   return +$('portion').value;
 }
 const mac=(t,m)=>`${tr('P')} ${r0(t.p*m)} · ${tr('F')} ${r0(t.f*m)} · ${tr('C')} ${r0(t.c*m)} · ${tr('Fi')} ${r0(t.fi*m)}`;
 function renderBSum(){
-  const t=sumItems(B), p=portion();
-  $('bSum').innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}<br><small>${mac(t,1)}</small></span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*p)}</b> ${tr('kcal')}<br><small>${mac(t,p)}</small></span>`;
+  const t=sumItems(B), p=portion(), info=infoLine(t,bOpts());
+  $('bSum').innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}<br><small>${mac(t,1)}</small></span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*p)}</b> ${tr('kcal')}<br><small>${mac(t,p)}</small></span>`+(info?`<small style="flex-basis:100%">${info}</small>`:'');
 }
 function renderBuilder(){
   // leave edit mode if the recipe being edited no longer exists (e.g. removed on another device)
@@ -676,6 +733,7 @@ function renderBuilder(){
   $('saveRec').textContent=tr(rb?'Update recipe':'Save recipe');
   $('bItems').innerHTML=B.map((it,i)=>`<li><span>${esc(dn(it.n))} <span class="sub"><span data-kc="${i}">${r0(sumItems([it]).k)}</span> ${tr('kcal')}${it.pcs?`<span data-pc="${i}"> · ${it.pcs} ${tr('pcs')}</span>`:''}</span></span><span class="right"><input class="gi" type="number" min="0" step="any" inputmode="decimal" value="${it.g}" data-bg="${i}" aria-label="${tr('Amount (g)')}"><span class="sub" style="display:inline">${tr('g')}</span><button class="x" data-rm="${i}" aria-label="${tr('Remove')} ${esc(dn(it.n))}">✕</button></span></li>`).join('');
   $('logForm').hidden=!B.length;
+  syncOpts();
   renderBSum();
 }
 
@@ -688,9 +746,11 @@ function itemRow(it){
 }
 function viewHTML(e){
   const items=e.items||[],sh=e.share==null?1:e.share;
+  const eat=e.sv>0?`${e.np} × ${r0(e.sv)} ${tr('g')}`:portLabel(sh);
+  const extra=e.cw>0?` · ${tr('Total weight')} ${r0(e.cw)} ${tr('g')}`:'';
   let h='<div class="det">';
   if(items.length){
-    h+=`<p class="note" style="margin:0">${tr('Ingredients')} · ${tr('Whole meal')} ${r0(sumItems(items).k)} ${tr('kcal')} · ${tr('You ate')} ${portLabel(sh)}</p><ul class="list">${items.map(itemRow).join('')}</ul>`;
+    h+=`<p class="note" style="margin:0">${tr('Ingredients')} · ${tr('Whole meal')} ${r0(sumItems(items).k)} ${tr('kcal')} · ${tr('You ate')} ${eat}${extra}</p><ul class="list">${items.map(itemRow).join('')}</ul>`;
   }else{
     h+=`<p class="note" style="margin:4px 0 12px">${tr('No ingredient details were saved for this entry. Tap Edit to add them.')}</p>`;
   }
@@ -699,10 +759,16 @@ function viewHTML(e){
 function editHTML(){
   const d=ED;
   const rows=d.items.length?d.items.map((it,i)=>`<li><span>${esc(dn(it.n))}</span><span class="right"><input class="gi" type="number" min="0" step="any" inputmode="decimal" value="${it.g}" data-g="${i}" aria-label="${tr('Amount (g)')}"><span class="sub" style="display:inline">${tr('g')}</span><button class="x" data-erm="${i}" aria-label="${tr('Remove')} ${esc(dn(it.n))}">✕</button></span></li>`).join(''):`<li class="empty">${tr('No ingredients yet.')}</li>`;
+  const svOn=+d.sv>0;
   return `<div class="det">
     <label class="field">${tr('Meal name')}<input id="eName" value="${esc(d.name)}"></label>
+    <div class="grid" style="margin:12px 0 0">
+      <label class="field">${tr('Total weight after cooking (g)')}<input id="eCw" type="number" min="0" step="any" inputmode="decimal" value="${esc(d.cw)}"></label>
+      <label class="field">${tr('One piece = (g)')}<input id="eSv" type="number" min="0" step="any" inputmode="decimal" value="${esc(d.sv)}"></label>
+    </div>
     <div class="eat">
-      <label class="field">${tr('I ate')}<select id="ePort">${PORTS.map(p=>`<option value="${p[0]}" ${p[0]===closestPort(d.share)?'selected':''}>${p[0]==='1'?tr('All of it'):p[1]}</option>`).join('')}</select></label>
+      <label class="field" id="ePortW" ${svOn?'hidden':''}>${tr('I ate')}<select id="ePort">${PORTS.map(p=>`<option value="${p[0]}" ${p[0]===closestPort(d.share)?'selected':''}>${p[0]==='1'?tr('All of it'):p[1]}</option>`).join('')}</select></label>
+      <label class="field" id="eNpW" ${svOn?'':'hidden'}>${tr('Pieces eaten')}<input id="eNp" type="number" min="0" step="any" inputmode="decimal" value="${esc(d.np)}"></label>
       <label class="field">${tr('Meal')}<select id="eSlot">${['Breakfast','Lunch','Dinner','Snack'].map(s=>`<option value="${s}" ${s===d.slot?'selected':''}>${tr(s)}</option>`).join('')}</select></label>
     </div>
     <p class="note" style="margin:0">${tr('Ingredients')}</p>
@@ -719,10 +785,19 @@ function editHTML(){
     <div class="actions"><button class="btn" id="eSave">${tr('Save')}</button><button class="btn quiet" id="eCancel">${tr('Cancel')}</button></div>
   </div>`;
 }
+// weight / piece numbers for the entry being edited
+function edOpts(){
+  const raw=ED.items.reduce((s,i)=>s+(i.g>0?i.g:0),0),cw=+ED.cw>0?+ED.cw:0,W=cw||raw,sv=+ED.sv>0?+ED.sv:0;
+  return{raw,cw,W,sv};
+}
+function edShare(){
+  const o=edOpts();
+  return(o.sv>0&&o.W>0)?(+ED.np||0)*o.sv/o.W:ED.share;
+}
 function updateEdSum(){
   const el=$('eSum');if(!el||!ED)return;
-  const t=sumItems(ED.items);
-  el.innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}<br><small>${mac(t,1)}</small></span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*ED.share)}</b> ${tr('kcal')}<br><small>${mac(t,ED.share)}</small></span>`;
+  const t=sumItems(ED.items),sh=edShare(),info=infoLine(t,edOpts());
+  el.innerHTML=`<span><small>${tr('Whole meal')}</small><br>${r0(t.k)} ${tr('kcal')}<br><small>${mac(t,1)}</small></span><span style="text-align:right"><small>${tr('You ate')}</small><br><b>${r0(t.k*sh)}</b> ${tr('kcal')}<br><small>${mac(t,sh)}</small></span>`+(info?`<small style="flex-basis:100%">${info}</small>`:'');
 }
 let lastE=null;
 function refreshEUnit(){
@@ -754,7 +829,7 @@ function renderCustom(){
 }
 function renderAll(){renderUsers();loadProfile();renderSummary();renderBuilder();renderLog();renderRecipes();renderCustom()}
 
-$('users').onclick=e=>{const u=e.target.dataset.u;if(u){S.cur=u;save();B=[];editRec=null;openId=null;ED=null;$('mname').value='';renderAll()}};
+$('users').onclick=e=>{const u=e.target.dataset.u;if(u){S.cur=u;save();resetBuilder();openId=null;ED=null;renderAll()}};
 ['name','gender','age','height','weight','activity','goal'].forEach(k=>$(k).addEventListener('input',()=>{U().prof[k]=$(k).value;save();renderSummary();if(k==='name')renderUsers();queue('PUT','users/'+S.cur+'/prof',U().prof)}));
 $('menuBtn').onclick=()=>{const m=$('menu');m.hidden=!m.hidden;$('menuBtn').setAttribute('aria-expanded',String(!m.hidden))};
 $('summary').onclick=e=>{if(e.target.id==='openProf'){e.preventDefault();$('menu').hidden=false;$('menuBtn').setAttribute('aria-expanded','true');$('profBox').open=true;$('profBox').scrollIntoView({behavior:'smooth'})}};
@@ -763,6 +838,7 @@ $('date').onclick=()=>{try{$('date').showPicker()}catch(e){}};
 $('prevDay').onclick=()=>shiftDay(-1);
 $('nextDay').onclick=()=>shiftDay(1);
 $('portion').onchange=renderBSum;
+['cwOn','cw','svOn','sv','np'].forEach(id=>{$(id).addEventListener('input',optsChanged);$(id).addEventListener('change',optsChanged)});
 let lastIng=null;
 function refreshUnit(){
   const d=find($('ing').value),pc=pcOf(d),u=$('unit');
@@ -815,17 +891,22 @@ $('bItems').oninput=e=>{
   it.g=+e.target.value||0;delete it.pcs;
   const kc=$('bItems').querySelector('[data-kc="'+i+'"]');if(kc)kc.textContent=r0(sumItems([it]).k);
   const pc=$('bItems').querySelector('[data-pc="'+i+'"]');if(pc)pc.remove();
-  renderBSum();
+  optsChanged();
 };
-function resetBuilder(){B=[];editRec=null;$('mname').value='';$('msg').textContent='';$('portion').value='1'}
+function resetBuilder(){
+  B=[];editRec=null;$('mname').value='';$('msg').textContent='';
+  setOpts({});
+}
 $('clearB').onclick=()=>{resetBuilder();renderBuilder()};
 $('editBanner').onclick=e=>{if(e.target.closest('#cancelEdit')){resetBuilder();renderBuilder()}};
 $('logBtn').onclick=()=>{
   const items=B.filter(x=>x.g>0);
   if(!items.length){$('msg').textContent=tr('Enter an amount.');return}
-  const p=portion();
+  const o=bOpts(),p=portion();
   const t=sumItems(items);
   const ent={id:Date.now(),date:$('date').value,slot:$('slot').value,name:$('mname').value.trim()||'Meal',share:p,items:items.map(x=>({...x})),k:t.k*p,p:t.p*p,f:t.f*p,c:t.c*p,fi:t.fi*p};
+  if(o.cw)ent.cw=o.cw;
+  if(o.sv){ent.sv=o.sv;ent.np=+$('np').value||0}
   U().log.push(ent);queue('PUT','users/'+S.cur+'/log/'+ent.id,ent);
   save();resetBuilder();
   renderBuilder();renderLog();renderSummary();
@@ -842,7 +923,10 @@ $('saveRec').onclick=()=>{
     // renaming onto a different existing recipe would create a duplicate
     if(r.some(x=>x.id!==editRec&&same(x))){$('msg').textContent=tr('A recipe with that name already exists.');return}
   }else ex=r.findIndex(same);
+  const o=bOpts();
   const rec={id:ex>=0?r[ex].id:uid(),name:n,items};
+  if(o.cw)rec.cw=o.cw;
+  if(o.sv&&$('sv').value!=='')rec.sv=o.sv;
   if(ex>=0)r[ex]=rec;else r.push(rec);
   save();queue('PUT','recipes/'+rec.id,rec);
   if(editRec)resetBuilder();else $('msg').textContent='';
@@ -850,10 +934,10 @@ $('saveRec').onclick=()=>{
 };
 $('recipes').onclick=e=>{
   const l=e.target.dataset.load,d=e.target.dataset.delrec,ed=e.target.dataset.editrec;
-  if(l!==undefined){const r=S.recipes[+l];editRec=null;B=r.items.map(x=>({...x}));$('mname').value=r.name;$('msg').textContent='';renderBuilder();$('portion').focus()}
+  if(l!==undefined){const r=S.recipes[+l];editRec=null;B=r.items.map(x=>({...x}));$('mname').value=r.name;$('msg').textContent='';setOpts(r);renderBuilder();$('portion').focus()}
   if(ed!==undefined){
     const r=S.recipes[+ed];editRec=r.id;B=r.items.map(x=>({...x}));
-    $('mname').value=r.name;$('portion').value='1';$('msg').textContent='';
+    $('mname').value=r.name;setOpts(r);$('msg').textContent='';
     renderBuilder();$('editBanner').scrollIntoView({behavior:'smooth',block:'center'});
   }
   if(d!==undefined){
@@ -880,7 +964,12 @@ function saveEdit(){
   const had=(e.items||[]).length>0,items=ED.items.filter(i=>i.g>0);
   if(had&&!items.length){$('eMsg').textContent=tr('Keep at least one ingredient, or delete the entry.');return}
   const oldShare=e.share==null?1:e.share;
-  e.name=ED.name.trim()||'Meal';e.slot=ED.slot;e.share=ED.share;
+  const cwv=+ED.cw>0?+ED.cw:0,svv=+ED.sv>0?+ED.sv:0;
+  const W=cwv||items.reduce((s,i)=>s+i.g,0);
+  e.name=ED.name.trim()||'Meal';e.slot=ED.slot;
+  e.share=(svv>0&&W>0)?(+ED.np||0)*svv/W:ED.share;
+  if(cwv)e.cw=cwv;else delete e.cw;
+  if(svv){e.sv=svv;e.np=+ED.np||0}else{delete e.sv;delete e.np}
   if(items.length){
     e.items=items;
     const t=sumItems(items);
@@ -906,7 +995,7 @@ LL.addEventListener('click',e=>{
   const ed=t.closest('[data-edit]');
   if(ed){
     const en=U().log.find(x=>String(x.id)===ed.dataset.edit);if(!en)return;
-    ED={id:String(en.id),name:en.name,slot:en.slot,share:en.share==null?1:en.share,items:(en.items||[]).map(x=>({...x}))};
+    ED={id:String(en.id),name:en.name,slot:en.slot,share:en.share==null?1:en.share,items:(en.items||[]).map(x=>({...x})),cw:en.cw||'',sv:en.sv||'',np:en.np==null?1:en.np};
     renderLog();return;
   }
   const rm=t.closest('[data-erm]');
@@ -922,6 +1011,9 @@ LL.addEventListener('input',e=>{
   const t=e.target;if(!ED)return;
   if(t.id==='eName')ED.name=t.value;
   else if(t.dataset.g!==undefined){const it=ED.items[+t.dataset.g];if(it){it.g=+t.value||0;delete it.pcs;updateEdSum()}}
+  else if(t.id==='eCw'){ED.cw=t.value;updateEdSum()}
+  else if(t.id==='eSv'){ED.sv=t.value;const on=+t.value>0;$('ePortW').hidden=on;$('eNpW').hidden=!on;updateEdSum()}
+  else if(t.id==='eNp'){ED.np=t.value;updateEdSum()}
   else if(t.id==='eIng'){fillSug(t,$('eSug'));refreshEUnit()}
 });
 LL.addEventListener('change',e=>{
@@ -978,7 +1070,7 @@ async function flush(){
 }
 const vals=(o,key)=>Object.values(o||{}).sort((a,b)=>String(a[key]).localeCompare(String(b[key]),undefined,{numeric:true}));
 // signature of a log entry, so edits made on another device are detected too
-const lsig=l=>[l.id,l.name,l.slot,l.share,Math.round(l.k),(l.items||[]).map(i=>i.n+':'+i.g).join(',')].join('|');
+const lsig=l=>[l.id,l.name,l.slot,l.share,l.cw,l.sv,l.np,Math.round(l.k),(l.items||[]).map(i=>i.n+':'+i.g).join(',')].join('|');
 function apply(d){
   const n={custom:vals(d.custom,'n'),recipes:vals(d.recipes,'name'),users:{}};
   for(const u in NAMES){
