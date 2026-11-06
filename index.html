@@ -128,6 +128,18 @@ input[type=checkbox]{-webkit-appearance:checkbox;appearance:auto;width:22px;heig
 .optbody{padding:0 0 12px 34px}
 .optbody .note{margin:6px 0 0}
 
+/* ---- micronutrients ---- */
+#micBox{margin:-22px 0 36px;padding:0 0 12px;border-top:0;border-bottom:1px solid var(--line)}
+.mg{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:20px 0 10px}
+.mr{margin:0 0 12px}
+.mt{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:.88rem}
+.mt span:last-child{color:var(--mute);font-size:.78rem;white-space:nowrap}
+.mt b{color:var(--ink);font-weight:600;font-size:.88rem}
+.mb{height:6px;border-radius:99px;background:var(--soft);margin-top:5px;overflow:hidden}
+.mb i{display:block;height:100%;border-radius:99px;background:var(--user);transition:width .5s ease}
+.mb i.over{background:var(--over)}
+@media (prefers-reduced-motion:reduce){.mb i{transition:none}}
+
 /* ---- mobile / iPhone / Russian fit ---- */
 html{-webkit-text-size-adjust:100%}
 button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -223,6 +235,7 @@ input[type=date]::-webkit-date-and-time-value{text-align:center;min-height:1.4em
   </div>
 
   <div id="summary"></div>
+  <details id="micBox"><summary>Micronutrients</summary><div id="micBars"></div><p class="note" id="micNote"></p></details>
 
   <section>
     <h2>Add food</h2>
@@ -534,6 +547,174 @@ Orange juice|45|0.7|0.2|0.2|10
 Apple juice|46|0.1|0.1|0.2|11
 Coffee, black|2|0.1|0|0|0
 Tea, unsweetened|1|0|0|0|0.2`;
+const MRAW=`Chicken breast, raw|370|28|5|0.4|0.7|45||6|0.1|0.3|4|
+Chicken breast, cooked|256|29|15|1|1|74||6|0.1|0.3|4|
+Chicken thigh, raw (skinless)|250|20|9|0.9|2|90||10|0.1|0.3|6|
+Beef mince 15% fat, raw|300|18|12|2.2|4.5|66||0|0.1|2.2|7|
+Beef steak, raw (sirloin)|350|24|10|2|4.5|55||0|0.1|2|7|
+Beef liver, raw|313|18|5|4.9|4|69|1.3|4968|1.2|59|290|
+Pork loin, raw|390|24|18|0.8|1.8|55||2|1.1|0.7|3|
+Lamb, raw|290|21|10|1.9|3.7|66||0|0.1|2.6|18|
+Turkey breast, raw|280|27|10|0.7|1.4|60||0|0.1|0.4|7|
+Ham|340|20|8|1|2.2|1200||0|0.5|0.6|2|
+Sausage, pork|250|14|20|1|2|900||0|0.5|1|3|
+Shrimp, raw|185|35|52|0.5|1.1|119||54|0|1.1|3|
+Salmon, raw|360|27|12|0.3|0.6|44||12|10.9|3.2|25|
+Cod, raw|413|32|16|0.4|0.5|54|1|12|1|0.9|7|
+Tuna, canned in water|237|27|11|1|0.8|247||16|1.7|2.5|4|
+Sardines, canned|397|39|382|2.9|1.3|307||32|4.8|8.9|10|
+Mackerel, raw|314|76|12|1.6|0.6|90|0.4|50|16|8.7|1|
+Egg, whole|126|12|56|1.8|1.3|142||160|2|0.9|47|
+Egg white|163|11|7|0.1|0|166||0|0|0.1|4|
+Egg yolk|109|5|129|2.7|2.3|48||381|5.4|1.9|146|
+Milk 2%|150|11|120|0|0.4|47|0|50|1.2|0.5|5|
+Milk, whole|132|10|113|0|0.4|43|0|46|1.3|0.5|5|
+Yogurt, plain|155|12|121|0.1|0.6|46|0.5|27|0|0.4|7|
+Greek yogurt 0%|141|11|110|0.1|0.5|36||0|0|0.7|7|
+Greek yogurt, full fat|141|11|100|0|0.5|35||40|0|0.7|7|
+Greek yogurt 10%|141|11|100|0|0.5|35||80|0|0.7|7|
+Cottage cheese|104|8|83|0.1|0.4|364||37|0|0.4|12|
+Cream cheese|138|9|98|0.4|0.5|321||308|0.3|0.2|11|
+Sour cream 20%|125|9|100|0.1|0.3|31||180|0|0.3|10|
+Heavy cream|95|7|65|0|0.2|38|0.6|411|0.3|0.2|3|
+Cheddar|98|28|720|0.7|3.1|653||265|0.6|1.1|27|
+Mozzarella|76|20|505|0.4|2.9|627||174|0.4|2.3|7|
+Parmesan|92|44|1184|0.8|2.8|1529||207|0.5|1.2|7|
+Feta|62|19|493|0.7|2.9|917||125|0.4|1.7|23|
+Gouda|121|29|700|0.2|3.9|819||165|0.5|1.5|21|
+Brie|152|20|184|0.5|2.4|629||173|0.5|1.7|65|
+Sulguni cheese|75|20|600|0.4|3|1000||150|0.4|1.2|10|
+Kefir|164|12|120|0|0.4|40|1|27|0.1|0.5|5|
+Matsoni|150|11|115|0.1|0.5|45|0.5|27|0|0.4|7|
+Butter|24|2|24|0|0.1|11||684|1.5|0.2|3|
+Olive oil|1|0|1|0.6|0|2||0|0|0|0|
+Mayonnaise|20|1|8|0.3|0.1|630||40|0.2|0.2|4|
+Rice, white, raw|115|25|28|0.8|1.1|5||0|0|0|8|
+Rice, brown, raw|223|143|23|1.5|2|7||0|0|0|20|
+Rice, white, cooked|35|12|10|0.2|0.5|1||0|0|0|3|
+Pasta, raw (dry)|223|53|21|3.3|1.4|6||0|0|0|18|
+Pasta, cooked|44|18|7|0.5|0.5|1||0|0|0|7|
+Oats, raw (dry)|429|177|54|4.7|4|2||0|0|0|56|
+Oatmeal, cooked|70|27|9|0.7|0.7|4||0|0|0|6|
+Quinoa, raw|563|197|47|4.6|3.1|5||1|0|0|184|
+Buckwheat groats, raw|460|231|18|2.2|2.4|1||0|0|0|30|
+Buckwheat, cooked|88|51|7|0.8|0.6|4||0|0|0|14|
+Couscous, raw|166|44|24|1.1|0.8|10||0|0|0|15|
+Bread, white|115|25|150|3.6|0.8|490||0|0|0|110|
+Bread, wholegrain|250|80|110|2.5|1.8|450||0|0|0|50|
+Tortilla, wheat|150|20|120|3|0.7|650||0|0|0|50|
+Flour, wheat|107|22|15|1.2|0.7|2||0|0|0|26|
+Potato, raw|425|23|12|0.8|0.3|6|19.7|0|0|0|15|
+Potato, boiled|328|22|8|0.3|0.3|4|13|0|0|0|9|
+Sweet potato, raw|337|25|30|0.6|0.3|55|2.4|709|0|0|11|
+Lentils, raw|677|47|35|6.5|3.3|6|4.5|2|0|0|479|
+Chickpeas, raw|875|115|105|6.2|2.8|24|4|3|0|0|557|
+Black beans, raw|1483|171|123|5|3.7|5||0|0|0|444|
+Kidney beans, raw|1406|140|143|8.2|2.8|24|4.5|0|0|0|394|
+Edamame|482|64|63|2.3|1.4|6|6.1|9|0|0|311|
+Tofu|121|30|350|5.4|0.8|7||0|0|0|15|
+Hummus|228|71|38|2.4|1.8|379||0|0|0|59|
+Almonds|733|270|269|3.7|3.1|1||0|0|0|44|
+Walnuts|441|158|98|2.9|3.1|2|1.3|1|0|0|98|
+Peanuts|705|168|92|4.6|3.3|18||0|0|0|240|
+Peanut butter|649|154|49|1.9|2.9|17||0|0|0|87|
+Hazelnuts|680|163|114|4.7|2.4|0|6.3|1|0|0|113|
+Cashews|660|292|37|6.7|5.8|12|0.5|0|0|0|25|
+Pistachios|1025|121|105|3.9|2.2|1|5.6|26|0|0|51|
+Pine nuts|597|251|16|5.5|6.5|2|0.8|1|0|0|34|
+Chia seeds|407|335|631|7.7|4.6|16|1.6|0|0|0|49|
+Flaxseed|813|392|255|5.7|4.3|30|0.6|0|0|0|87|
+Sunflower seeds|645|325|78|5.3|5|9|1.4|3|0|0|227|
+Pumpkin seeds|809|592|46|8.8|7.8|7|1.9|1|0|0|58|
+Tahini|414|95|426|8.9|4.6|115||3|0|0|98|
+Apple|107|5|6|0.1|0|1|4.6|3|0|0|3|
+Banana|358|27|5|0.3|0.2|1|8.7|3|0|0|20|
+Orange|181|10|40|0.1|0.1|0|53|11|0|0|30|
+Pear|116|7|9|0.2|0.1|1|4.3|1|0|0|7|
+Grapes|191|7|10|0.4|0.1|2|3.2|3|0|0|2|
+Strawberries|153|13|16|0.4|0.1|1|59|1|0|0|24|
+Blueberries|77|6|6|0.3|0.2|1|9.7|3|0|0|6|
+Raspberries|151|22|25|0.7|0.4|1|26|2|0|0|21|
+Blackberries|162|20|29|0.6|0.5|1|21|11|0|0|25|
+Lemon|138|8|26|0.6|0.1|2|53|1|0|0|11|
+Kiwi|312|17|34|0.3|0.1|3|93|4|0|0|25|
+Peach|190|9|6|0.3|0.2|0|6.6|16|0|0|4|
+Mandarin|166|12|37|0.2|0.1|2|27|34|0|0|16|
+Plum|157|7|6|0.2|0.1|0|9.5|17|0|0|5|
+Apricot|259|10|13|0.4|0.2|1|10|96|0|0|9|
+Cherries|222|11|13|0.3|0.1|0|7|3|0|0|4|
+Mango|168|10|11|0.2|0.1|1|36|54|0|0|43|
+Pineapple|109|12|13|0.3|0.1|1|48|3|0|0|18|
+Pomegranate|236|12|10|0.3|0.4|3|10|0|0|0|38|
+Persimmon|161|9|8|0.2|0.1|1|7.5|81|0|0|8|
+Feijoa|172|9|17|0.1|0.1|3|33|0|0|0|38|
+Fig, fresh|232|17|35|0.4|0.2|1|2|7|0|0|6|
+Grapefruit|135|9|22|0.1|0.1|0|31|3|0|0|13|1
+Melon|267|12|9|0.2|0.2|16|36|169|0|0|21|
+Watermelon|112|10|7|0.2|0.1|1|8.1|28|0|0|3|4.5
+Avocado|485|29|12|0.6|0.6|7|10|7|0|0|81|
+Dates, dried|696|54|64|0.9|0.4|2||0|0|0|15|
+Raisins|749|32|50|1.9|0.2|11|2.3|0|0|0|5|
+Dried apricots|1162|32|55|3.2|0.4|10|1|180|0|0|10|
+Prunes|732|41|43|0.9|0.4|2|0.6|39|0|0|4|
+Tomato|237|11|10|0.3|0.2|5|14|42|0|0|15|2.6
+Tomato sauce / passata|297|18|15|0.9|0.3|10|9|18|0|0|10|15
+Tomato paste|1014|42|36|3|1|59|21|76|0|0|27|28
+Sun-dried tomatoes|3427|194|110|9|2|2095|39|12|0|0|68|46
+Ketchup|364|15|15|0.4|0.2|907|4|15|0|0|9|10
+Cucumber|147|13|16|0.3|0.2|2|2.8|5|0|0|7|
+Carrot|320|12|33|0.3|0.2|69|5.9|835|0|0|19|
+Broccoli|316|21|47|0.7|0.4|33|89|31|0|0|63|
+Cauliflower|299|15|22|0.4|0.3|30|48|0|0|0|57|
+Spinach|558|79|99|2.7|0.5|79|28|469|0|0|194|
+Lettuce|194|7|36|0.9|0.2|28|9|370|0|0|38|
+Onion|146|10|23|0.2|0.2|4|7.4|0|0|0|19|
+Garlic|401|25|181|1.7|1.2|17|31|0|0|0|3|
+Bell pepper|211|12|7|0.4|0.3|4|80|18|0|0|10|
+Zucchini|261|18|16|0.4|0.3|8|17|10|0|0|24|
+Eggplant|229|14|9|0.2|0.2|2|2.2|1|0|0|22|
+Cabbage|170|12|40|0.5|0.2|18|36|5|0|0|43|
+Mushrooms|318|9|3|0.5|0.5|5|2.1|0|0.2|0|17|
+Green beans|211|25|37|1|0.2|6|12|35|0|0|33|
+Peas|244|33|25|1.5|1.2|5|40|38|0|0|65|
+Corn|270|37|2|0.5|0.5|15|6.8|9|0|0|46|
+Beetroot|325|23|16|0.8|0.4|78|4.9|2|0|0|109|
+Pumpkin|340|12|21|0.8|0.3|1|9|426|0|0|16|
+Kale|491|47|150|1.5|0.6|38|120|241|0|0|141|
+Brussels sprouts|389|23|42|1.4|0.4|25|85|38|0|0|61|
+Asparagus|202|14|24|2.1|0.5|2|5.6|38|0|0|52|
+Celery|260|11|40|0.2|0.1|80|3.1|22|0|0|36|
+Leek|180|28|59|2.1|0.1|20|12|83|0|0|64|
+Green onion|276|20|72|1.5|0.4|16|19|50|0|0|64|
+Radish|233|10|25|0.3|0.3|39|15|0|0|0|25|
+Okra|299|57|82|0.6|0.6|7|23|36|0|0|60|
+Chili pepper|322|23|14|1|0.3|9|144|48|0|0|23|
+Parsley|554|50|138|6.2|1.1|56|133|421|0|0|152|
+Cilantro|521|26|67|1.8|0.5|46|27|337|0|0|62|
+Dill|738|55|208|6.6|0.9|61|85|386|0|0|150|
+Basil|295|64|177|3.2|0.8|4|18|264|0|0|68|
+Olives|42|11|88|3.3|0.2|735|1|20|0|0|0|
+Sauerkraut|170|13|30|1.5|0.2|661|15|1|0|0|24|
+Coconut milk, canned|263|37|16|1.6|0.7|13|2.8|0|0|0|16|
+Soy sauce|435|74|33|2.4|0.5|5493||0|0|0|14|
+Soy milk|118|25|25|0.4|0.2|51||0|1|0|20|
+Oat milk|140|8|120|0.4|0.1|40||60|0.9|0.4|5|
+Almond milk|67|7|184|0.3|0.1|72||60|1|0|2|
+Honey|52|2|6|0.4|0.2|4|0.5|0|0|0|2|
+Dark chocolate 70%|715|228|73|11.9|3.3|20||2|0|0|12|
+Milk chocolate|372|63|189|2.3|2.3|79||0|0|0.2|5|
+Orange juice|200|11|11|0.2|0.1|1|50|10|0|0|30|
+Apple juice|101|5|8|0.1|0|4|1|0|0|0|0|
+Coffee, black|49|3|2|0|0|2||0|0|0|2|`;
+// micronutrients per 100 g: K Mg Ca Fe Zn Na(mg) C(mg) A(µg RAE) D(µg) B12(µg) Folate(µg) Lycopene(mg); approximate
+const MIC={};MRAW.split('\n').forEach(l=>{const a=l.split('|');MIC[a[0]]=a.slice(1,13).map(v=>+v||0)});
+const MDEF=[['Potassium','Калий','mg','Minerals'],['Magnesium','Магний','mg','Minerals'],['Calcium','Кальций','mg','Minerals'],['Iron','Железо','mg','Minerals'],['Zinc','Цинк','mg','Minerals'],['Sodium','Натрий','mg','Minerals'],
+['Vitamin C','Витамин C','mg','Vitamins'],['Vitamin A','Витамин A','µg','Vitamins'],['Vitamin D','Витамин D','µg','Vitamins'],['Vitamin B12','Витамин B12','µg','Vitamins'],['Folate','Фолаты','µg','Vitamins'],['Lycopene','Ликопин','mg','Antioxidant']];
+// adult reference intakes (sodium = upper limit; lycopene = research benchmark, no official value)
+function mTargets(p){
+  const m=p.gender==='m',a=+p.age||30;
+  return[m?3400:2600,m?420:320,(m?a>70:a>50)?1200:1000,m?8:(a>50?8:18),m?11:8,2300,m?90:75,m?900:700,a>70?20:15,2.4,400,10];
+}
 const DB=RAW.split('\n').map(l=>{const a=l.split('|');return{n:a[0],k:+a[1],p:+a[2],f:+a[3],fi:+a[4],c:+a[5]}});
 
 // grams per piece (edible part, medium size)
@@ -581,14 +762,17 @@ const RU={
 'Can’t reach the database. Check the URL and your rules.':'Нет связи с базой данных. Проверьте адрес и правила.',
 'Whole recipe ≈ {g} g':'Весь рецепт ≈ {g} г','Menu':'Меню','Luiza':'Луиза','Ika':'Ика',
 'Weight after cooking':'Вес после готовки','Total weight after cooking (g)':'Общий вес после готовки (г)','Serving / piece size':'Размер порции / куска','One piece = (g)':'Один кусок = (г)','Empty = whole recipe is one piece.':'Пусто = весь рецепт — один кусок.','Pieces eaten':'Съедено кусков',
-'Recipe options':'Параметры рецепта','Total weight':'Общий вес','1 piece':'1 кусок','Raw ingredients ≈ {g} g':'Сырые ингредиенты ≈ {g} г','kcal / 100 g':'ккал / 100 г'};
+'Recipe options':'Параметры рецепта','Micronutrients':'Микроэлементы и витамины','Minerals':'Минералы','Vitamins':'Витамины','Antioxidant':'Антиоксидант','limit':'лимит','mg':'мг','µg':'мкг',
+'Lycopene has no official requirement. 10 mg/day is a research benchmark from observational studies on prostate cancer risk, not medical advice.':'Для ликопина нет официальной нормы. 10 мг в день — ориентир из наблюдательных исследований о риске рака простаты, а не медицинская рекомендация.',
+'About {p}% of today’s food (by weight) has no micronutrient data, so totals may be low.':'Примерно для {p}% съеденного (по весу) нет данных о микроэлементах, поэтому итоги могут быть занижены.',
+'Some entries have no ingredient details, so totals may be low.':'У некоторых записей нет состава, поэтому итоги могут быть занижены.','Total weight':'Общий вес','1 piece':'1 кусок','Raw ingredients ≈ {g} g':'Сырые ингредиенты ≈ {g} г','kcal / 100 g':'ккал / 100 г'};
 const RUI={'Chicken breast, raw':'Куриная грудка, сырая','Beef mince 15% fat, raw':'Говяжий фарш 15%, сырой','Ham':'Ветчина','Sausage, pork':'Колбаса свиная','Salmon, raw':'Лосось, сырой','Cod, raw':'Треска, сырая','Tuna, canned in water':'Тунец консервированный в собственном соку','Egg, whole':'Яйцо целое','Egg white':'Яичный белок','Milk 2%':'Молоко 2%','Milk, whole':'Молоко цельное','Yogurt, plain':'Йогурт натуральный','Greek yogurt 0%':'Греческий йогурт 0%','Greek yogurt, full fat':'Греческий йогурт жирный','Cottage cheese':'Творог','Cream cheese':'Сливочный сыр','Sour cream 20%':'Сметана 20%','Heavy cream':'Сливки жирные','Cheddar':'Чеддер','Mozzarella':'Моцарелла','Parmesan':'Пармезан','Feta':'Фета','Butter':'Сливочное масло','Olive oil':'Оливковое масло','Sunflower oil':'Подсолнечное масло','Mayonnaise':'Майонез','Rice, white, raw':'Рис белый, сырой','Pasta, raw (dry)':'Макароны, сухие','Oats, raw (dry)':'Овсяные хлопья, сухие','Muesli':'Мюсли','Cornflakes':'Кукурузные хлопья','Bread, white':'Хлеб белый','Bread, wholegrain':'Хлеб цельнозерновой','Tortilla, wheat':'Тортилья пшеничная','Flour, wheat':'Мука пшеничная','Potato, raw':'Картофель, сырой','Tofu':'Тофу','Hummus':'Хумус','Almonds':'Миндаль','Walnuts':'Грецкие орехи','Peanuts':'Арахис','Peanut butter':'Арахисовая паста','Chia seeds':'Семена чиа','Sunflower seeds':'Семечки подсолнечника','Apple':'Яблоко','Banana':'Банан','Orange':'Апельсин','Pear':'Груша','Grapes':'Виноград','Strawberries':'Клубника','Blueberries':'Голубика','Watermelon':'Арбуз','Lemon':'Лимон','Avocado':'Авокадо','Tomato':'Помидор','Cucumber':'Огурец','Carrot':'Морковь','Broccoli':'Брокколи','Cauliflower':'Цветная капуста','Spinach':'Шпинат','Lettuce':'Салат листовой','Onion':'Лук репчатый','Garlic':'Чеснок','Bell pepper':'Болгарский перец','Zucchini':'Кабачок','Eggplant':'Баклажан','Cabbage':'Капуста белокочанная','Mushrooms':'Шампиньоны','Green beans':'Стручковая фасоль','Peas':'Зелёный горошек','Corn':'Кукуруза','Beetroot':'Свёкла','Pumpkin':'Тыква','Tomato sauce / passata':'Томатный соус / пассата','Coconut milk, canned':'Кокосовое молоко','Soy sauce':'Соевый соус','Ketchup':'Кетчуп','Sugar':'Сахар','Honey':'Мёд','Dark chocolate 70%':'Тёмный шоколад 70%','Milk chocolate':'Молочный шоколад','Whey protein powder':'Сывороточный протеин','Rice cakes':'Рисовые хлебцы','Chicken thigh, raw (skinless)':'Куриное бедро без кожи, сырое','Beef steak, raw (sirloin)':'Говяжий стейк, сырой','Pork loin, raw':'Свиная корейка, сырая','Bacon, raw':'Бекон, сырой','Shrimp, raw':'Креветки, сырые','Turkey breast, raw':'Грудка индейки, сырая','Rice, basmati, raw':'Рис басмати, сырой','Rice, brown, raw':'Рис бурый, сырой','Quinoa, raw':'Киноа, сухая','Buckwheat groats, raw':'Гречка, сухая','Couscous, raw':'Кускус, сухой','Lentils, raw':'Чечевица, сухая','Chickpeas, raw':'Нут, сухой','Black beans, raw':'Чёрная фасоль, сухая','Kidney beans, raw':'Красная фасоль, сухая','Sweet potato, raw':'Батат, сырой','Greek yogurt 10%':'Греческий йогурт 10%','Raspberries':'Малина','Kiwi':'Киви','Peach':'Персик','Mandarin':'Мандарин','Plum':'Слива','Apricot':'Абрикос','Cherries':'Черешня','Mango':'Манго','Pineapple':'Ананас',
 'Popcorn, air-popped':'Попкорн без масла','Popcorn, buttered/oil':'Попкорн с маслом','Potato chips':'Картофельные чипсы','Pretzels':'Крендельки','Crackers':'Крекеры','French fries':'Картофель фри','Pizza, cheese':'Пицца с сыром','Ice cream, vanilla':'Мороженое пломбир','Croissant':'Круассан','Cookies':'Печенье','Cake, sponge':'Бисквитный торт','Nutella / choc spread':'Шоколадная паста','Jam':'Джем','Marshmallow':'Зефир маршмеллоу','Gummy candy':'Мармелад жевательный','Granola':'Гранола','Maple syrup':'Кленовый сироп','Cocoa powder':'Какао-порошок','Condensed milk':'Сгущённое молоко','Churchkhela':'Чурчхела','Tklapi (plum leather)':'Ткемали сушёный (тклапи)','Tkemali sauce':'Соус ткемали','Adjika':'Аджика','Khachapuri, Imeretian':'Хачапури по-имеретински','Khachapuri, Adjarian':'Хачапури по-аджарски','Khinkali, meat (cooked)':'Хинкали с мясом','Lobiani':'Лобиани','Lobio, cooked red beans':'Лобио (фасоль варёная)','Pkhali, spinach':'Пхали шпинатный','Badrijani nigvzit':'Баклажаны с орехами','Mtsvadi, pork (cooked)':'Мцвади свиной (готовый)','Kharcho soup':'Харчо','Chakhokhbili':'Чахохбили','Satsivi':'Сациви','Mchadi (cornbread)':'Мчади','Ghomi (cornmeal porridge)':'Гоми','Shoti bread':'Хлеб шотис пури','Lavash':'Лаваш','Pita':'Пита','Rye bread':'Хлеб ржаной','Baguette':'Багет','Sulguni cheese':'Сулугуни','Imeretian cheese':'Имеретинский сыр','Matsoni':'Мацони','Kefir':'Кефир','Ayran':'Айран','Brie':'Бри','Gouda':'Гауда','Ricotta':'Рикотта','Halloumi':'Халуми','Ghee':'Топлёное масло гхи','Coconut oil':'Кокосовое масло','Egg yolk':'Яичный желток','Buckwheat, cooked':'Гречка варёная','Rice, white, cooked':'Рис варёный','Pasta, cooked':'Макароны варёные','Potato, boiled':'Картофель варёный','Oatmeal, cooked':'Овсянка варёная','Chicken breast, cooked':'Куриная грудка, готовая','Lamb, raw':'Баранина, сырая','Veal, raw':'Телятина, сырая','Beef liver, raw':'Говяжья печень, сырая','Chicken liver, raw':'Куриная печень, сырая','Pork shoulder, raw':'Свиная лопатка, сырая','Salami':'Салями','Sardines, canned':'Сардины консервированные','Mackerel, raw':'Скумбрия, сырая','Trout, raw':'Форель, сырая','Herring':'Сельдь','Sea bass, raw':'Сибас, сырой','Cornmeal':'Кукурузная мука','Semolina':'Манка','Millet':'Пшено','Bulgur':'Булгур','Barley, pearl':'Перловка','Rice noodles':'Рисовая лапша','Edamame':'Эдамаме','Soy milk':'Соевое молоко','Oat milk':'Овсяное молоко','Almond milk':'Миндальное молоко','Hazelnuts':'Фундук','Cashews':'Кешью','Pistachios':'Фисташки','Pine nuts':'Кедровые орехи','Pumpkin seeds':'Тыквенные семечки','Flaxseed':'Семена льна','Tahini':'Тахини','Coconut flakes':'Кокосовая стружка','Raisins':'Изюм','Dates, dried':'Финики','Dried figs':'Инжир сушёный','Dried apricots':'Курага','Prunes':'Чернослив','Pomegranate':'Гранат','Persimmon':'Хурма','Feijoa':'Фейхоа','Fig, fresh':'Инжир свежий','Quince':'Айва','Grapefruit':'Грейпфрут','Melon':'Дыня','Blackberries':'Ежевика','Cranberries':'Клюква','Coconut, fresh':'Кокос свежий','Olives':'Оливки','Pickled cucumber':'Солёный огурец','Sauerkraut':'Квашеная капуста','Leek':'Лук-порей','Green onion':'Зелёный лук','Celery':'Сельдерей','Radish':'Редис','Asparagus':'Спаржа','Kale':'Кале','Brussels sprouts':'Брюссельская капуста','Okra':'Бамия','Chili pepper':'Острый перец','Cilantro':'Кинза','Parsley':'Петрушка','Dill':'Укроп','Basil':'Базилик','Tarragon (tarkhun)':'Тархун сушёный','Barberry (barbaris), fresh':'Барбарис свежий','Tomato paste':'Томатная паста','Sun-dried tomatoes':'Вяленые томаты','Mustard':'Горчица','Vinegar':'Уксус','Wine, red':'Вино красное','Wine, white':'Вино белое','Beer':'Пиво','Chacha / vodka':'Чача / водка','Cola':'Кола','Orange juice':'Апельсиновый сок','Apple juice':'Яблочный сок','Coffee, black':'Кофе чёрный','Tea, unsweetened':'Чай без сахара'};
 const tr=k=>LANG==='ru'&&RU[k]!==undefined?RU[k]:k;
 const tf=(k,v)=>tr(k).replace(/\{(\w+)\}/g,(m,x)=>v[x]);
 const dn=n=>LANG==='ru'&&RUI[n]?RUI[n]:n;
 const nm=u=>S.users[u].prof.name||tr(u==='luiza'?'Luiza':'Ika');
-const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint','editBanner','saveRec','cwNote']);
+const SKIP=new Set(['summary','bItems','bSum','logList','recipes','customList','profNote','syncMsg','msg','logTitle','users','ingList','lang','pcHint','editBanner','saveRec','cwNote','micBars','micNote']);
 const tn=[],ta=[];
 const skipEl=el=>{for(let e=el;e;e=e.parentElement){if(e.tagName==='SCRIPT'||e.tagName==='STYLE'||SKIP.has(e.id))return true}return false};
 function collect(){
@@ -612,7 +796,7 @@ const findBase=n=>{n=n.trim().toLowerCase();return base().find(i=>i.n.toLowerCas
 const recIngs=()=>S.recipes.filter(r=>r.id!==editRec).map(r=>{
   const t=sumItems(r.items),g0=r.items.reduce((s,i)=>s+i.g,0),g=r.cw>0?r.cw:g0;
   if(!(g>0))return null;
-  const x={k:t.k/g*100,p:t.p/g*100,f:t.f/g*100,c:t.c/g*100,fi:t.fi/g*100};
+  const sm=sumMic(r.items),x={k:t.k/g*100,p:t.p/g*100,f:t.f/g*100,c:t.c/g*100,fi:t.fi/g*100,m:sm.v.map(q=>q/g*100),cov:sm.tg>0?sm.cg/sm.tg:0};
   return{n:'🍲 '+r.name,...x,x,rec:1,tot:g,pc:r.sv>0?r.sv:0};
 }).filter(Boolean);
 const all=()=>base().concat(recIngs());
@@ -682,6 +866,38 @@ function renderSummary(){
       <div class="macros">${m('Protein','p')}${m('Fat','f')}${m('Carbs','c')}${m('Fiber','fi')}</div>`;
   }
   $('profNote').innerHTML=T?tf('Maintenance ≈ {a} kcal/day. Your daily target: {b} kcal, {c}g protein, {d}g fat, {e}g carbs, {f}g fiber.',{a:r0(T.tdee),b:r0(T.k),c:r0(T.p),d:r0(T.f),e:r0(T.c),f:r0(T.fi)})+(T.limited?' '+tr('Held at a safe minimum, so weight loss may be slower than chosen.'):'')+' '+tr('These are estimates.'):'';
+  renderMicro();
+}
+
+// ---------- micronutrients ----------
+function sumMic(items){
+  const v=Array(12).fill(0);let cg=0,tg=0;
+  items.forEach(it=>{
+    const d=it.x||findBase(it.n);if(!d)return;
+    const g=+it.g||0,m=it.x?it.x.m:MIC[d.n];tg+=g;
+    if(!m)return;
+    cg+=g*(it.x&&it.x.cov!=null?it.x.cov:1);
+    m.forEach((q,i)=>v[i]+=q*g/100);
+  });
+  return{v,cg,tg};
+}
+function renderMicro(){
+  const T=mTargets(U().prof),v=Array(12).fill(0);let cg=0,tg=0,unk=false;
+  U().log.filter(e=>e.date===$('date').value).forEach(e=>{
+    const sh=e.share==null?1:e.share,its=e.items||[];
+    if(!its.length){unk=true;return}
+    const s=sumMic(its);s.v.forEach((q,i)=>v[i]+=q*sh);cg+=s.cg*sh;tg+=s.tg*sh;
+  });
+  const fn=n=>n>=100?r0(n).toLocaleString(LANG==='ru'?'ru':'en'):r1(n);
+  let h='',g='';
+  MDEF.forEach((d,i)=>{
+    if(d[3]!==g){g=d[3];h+=`<div class="mg">${tr(g)}</div>`}
+    const pct=v[i]/T[i],lim=i===5;
+    h+=`<div class="mr"><div class="mt"><span>${LANG==='ru'?d[1]:d[0]}${lim?' · '+tr('limit'):''}</span><span><b>${fn(v[i])}</b> / ${fn(T[i])} ${tr(d[2])} · ${r0(pct*100)}%</span></div><div class="mb"><i class="${lim&&pct>1?'over':''}" style="width:${Math.min(100,pct*100)}%"></i></div></div>`;
+  });
+  $('micBars').innerHTML=h;
+  const p=tg>0?r0((1-cg/tg)*100):0;
+  $('micNote').textContent=[p>=2?tf('About {p}% of today’s food (by weight) has no micronutrient data, so totals may be low.',{p}):'',unk?tr('Some entries have no ingredient details, so totals may be low.'):'',tr('Lycopene has no official requirement. 10 mg/day is a research benchmark from observational studies on prostate cancer risk, not medical advice.')].filter(Boolean).join(' ');
 }
 
 // ---------- cooked weight / serving size ----------
